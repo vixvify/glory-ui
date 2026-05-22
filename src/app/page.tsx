@@ -8,19 +8,18 @@ import MovieCard from "@/components/movie/MovieCard";
 import MovieDetailsModal from "@/components/movie/MovieDetailsModal";
 import TrailerModal from "@/components/modal/TrailerModal";
 import AuthModal from "@/components/modal/AuthModal";
-import { movies as initialMovies } from "@/lib/data";
 import { Movie } from "@/core/domain/movie";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { movieService, authService } from "@/lib/services";
+import { movieService, authService } from "@/infra/container";
 import { useAppStore } from "@/store/useStore";
 
 export default function HomePage() {
-  const [allMovies, setAllMovies] = useState<Movie[]>(initialMovies);
+  const [allMovies, setAllMovies] = useState<Movie[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showMyListOnly, setShowMyListOnly] = useState(false);
-  
+
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
   const [trailerMovie, setTrailerMovie] = useState<Movie | null>(null);

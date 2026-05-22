@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { movieService, authService } from "@/lib/services";
+import { movieService, authService } from "@/infra/container";
 
 interface AppState {
   currentUser: { name: string; email: string } | null;

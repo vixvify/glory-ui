@@ -9,7 +9,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { parseSchema } from "@/lib/validation";
 import { registerUserSchema, loginUserSchema } from "@/core/schema/auth";
-import { authService } from "@/lib/services";
+import { authService } from "@/infra/container";
 
 interface AuthModalProps {
   isOpen: boolean;

@@ -170,7 +170,7 @@ export default function Navbar({
               className="flex items-center gap-1.5 cursor-pointer group"
             >
               <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white font-bold text-sm shadow-md shadow-brand/20">
-                {currentUser.name.charAt(0).toUpperCase()}
+                {(currentUser.name || currentUser.email || "U").charAt(0).toUpperCase()}
               </div>
               <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-t-zinc-400 border-l-transparent border-r-transparent group-hover:border-t-white transition-colors" />
             </button>
@@ -178,7 +178,7 @@ export default function Navbar({
             {showProfileMenu && (
               <div className="absolute right-0 mt-3 w-48 bg-card rounded-xl border border-zinc-800 p-2 shadow-xl animate-fade-in z-50">
                 <div className="px-3 py-2 border-b border-zinc-800/80 mb-1">
-                  <p className="text-xs text-white font-semibold truncate">{currentUser.name}</p>
+                  <p className="text-xs text-white font-semibold truncate">{currentUser.name || currentUser.email}</p>
                   <p className="text-[10px] text-zinc-500 truncate mt-0.5">{currentUser.email}</p>
                 </div>
                 <button

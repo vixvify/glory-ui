@@ -59,7 +59,7 @@ export default function MovieDetailsModal({
     e.preventDefault();
     if (!currentUser) return;
 
-    onAddRating(movie.id, currentUser.name, reviewScore);
+    onAddRating(movie.id, currentUser.name || currentUser.email || "User", reviewScore);
     setIsSubmitted(true);
   };
 
@@ -232,7 +232,7 @@ export default function MovieDetailsModal({
                   <div className="p-3 bg-zinc-900/60 rounded-lg border border-zinc-800 flex items-center justify-between gap-2">
                     <span className="text-xs text-zinc-400 font-medium">Reviewing as:</span>
                     <span className="text-xs font-bold text-white truncate max-w-[120px] bg-brand/10 px-2 py-0.5 rounded border border-brand/20">
-                      {currentUser.name}
+                      {currentUser.name || currentUser.email}
                     </span>
                   </div>
 

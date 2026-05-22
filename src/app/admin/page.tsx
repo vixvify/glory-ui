@@ -21,7 +21,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { CreateMovie } from "@/core/domain/movie";
 import { parseSchema } from "@/lib/validation";
 import { createMovieSchema } from "@/core/schema/movie";
-import { movieService, authService } from "@/lib/services";
+import { movieService, authService } from "@/infra/container";
 import { useAppStore } from "@/store/useStore";
 
 export default function AdminPage() {
