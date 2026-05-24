@@ -14,12 +14,14 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { movieService, authService } from "@/infra/container";
 import { useAppStore } from "@/store/useStore";
+import Loading from "./loading";
 
 export default function HomePage() {
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showMyListOnly, setShowMyListOnly] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
@@ -33,6 +35,7 @@ export default function HomePage() {
     const fetchMovies = async () => {
       try {
         const moviesList = await movieService.getAllMovies();
+        setLoading(false);
         setAllMovies(moviesList);
       } catch (err) {
         console.error(err);
@@ -124,6 +127,10 @@ export default function HomePage() {
 
   const filteredMovies = getFilteredMovies();
   const isBrowsingRowView = !searchQuery && !selectedCategory && !showMyListOnly;
+
+  if (loading) {
+    return <Loading />
+  }
 
   return (
     <div className="min-h-screen bg-background text-white flex flex-col font-sans select-none pb-16 transition-colors duration-450">

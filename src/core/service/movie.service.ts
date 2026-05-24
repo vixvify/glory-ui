@@ -8,7 +8,7 @@ export class MovieService {
         if (response.error) {
             throw response.error;
         }
-        return response.data;
+        return response.data
     }
     async getMovieById(id: string): Promise<Movie> {
         const response = await this.movieRepository.getMovieById(id);
