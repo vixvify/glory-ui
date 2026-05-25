@@ -15,12 +15,17 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { movieService, authService } from "@/infra/container";
 import { useAppStore } from "@/store/useStore";
 import Loading from "./loading";
+import { Toast } from "@/components/ui/Toast";
+import { Button } from "@/components/ui/Button";
+import { categoryTitleMapping } from "@/core/constants/categories";
 
 export default function HomePage() {
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showMyListOnly, setShowMyListOnly] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -29,22 +34,33 @@ export default function HomePage() {
 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
-  const { currentUser, setCurrentUser, favorites, toggleFavorite, fetchFavorites, fetchCurrentUser } = useAppStore();
+  const { currentUser, setCurrentUser, showToast } = useAppStore();
 
   useEffect(() => {
-    const fetchMovies = async () => {
+    const fetchMoviesAndCategories = async () => {
       try {
-        const moviesList = await movieService.getAllMovies();
-        setLoading(false);
+        const favoritesPromise = currentUser
+          ? movieService.getFavorites()
+          : Promise.resolve([]);
+
+        const [moviesList, cats, favMovies] = await Promise.all([
+          movieService.getAllMovies(),
+          movieService.getCategories(),
+          favoritesPromise,
+        ]);
+
         setAllMovies(moviesList);
+        setCategories(cats);
+        setFavorites(favMovies);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchMovies();
-    fetchFavorites();
-    fetchCurrentUser();
-  }, []);
+
+    fetchMoviesAndCategories();
+  }, [currentUser]);
 
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
@@ -53,14 +69,34 @@ export default function HomePage() {
   const handleSignOut = async () => {
     try {
       await authService.logout();
+      showToast("Logged out successfully.", "info");
     } catch (err) {
       console.error(err);
     }
     setCurrentUser(null);
   };
 
-  const handleToggleFavorite = (movieId: string) => {
-    toggleFavorite(movieId);
+  const handleToggleFavorite = async (movieId: string) => {
+    if (!currentUser) {
+      setIsAuthOpen(true);
+      return;
+    }
+    const isCurrentlyFavorite = favorites.includes(movieId);
+
+    try {
+      if (isCurrentlyFavorite) {
+        setFavorites((prev) => prev.filter((id) => id !== movieId));
+        await movieService.removeFavorite(movieId);
+        showToast("Removed from My List", "info");
+      } else {
+        setFavorites((prev) => [...prev, movieId]);
+        await movieService.addFavorite(movieId);
+        showToast("Added to My List", "success");
+      }
+
+    } catch (error) {
+      console.error("Error in handleToggleFavorite:", error);
+    }
   };
 
   const handleAddRating = (
@@ -128,6 +164,10 @@ export default function HomePage() {
   const filteredMovies = getFilteredMovies();
   const isBrowsingRowView = !searchQuery && !selectedCategory && !showMyListOnly;
 
+  const recommendedMovies = () => {
+    return allMovies.sort((a, b) => b.matchRate - a.matchRate).slice(0, 5)
+  }
+
   if (loading) {
     return <Loading />
   }
@@ -144,17 +184,18 @@ export default function HomePage() {
         currentUser={currentUser}
         onSignOut={handleSignOut}
         onSignInClick={() => setIsAuthOpen(true)}
+        categories={categories}
       />
 
       {isBrowsingRowView ? (
         <main className="flex-1 flex flex-col">
           <MovieHero
-            movies={allMovies}
+            movies={recommendedMovies()}
             onPlayClick={handlePlayTrailer}
             onInfoClick={setSelectedMovie}
           />
 
-          <div className="relative z-20 px-6 md:px-16 space-y-12 -mt-16 md:-mt-28">
+          <div className="relative z-20 px-6 md:px-16 space-y-12 -mt-6 md:-mt-10">
             <MovieRow
               title="Trending Now"
               movies={allMovies}
@@ -164,32 +205,24 @@ export default function HomePage() {
               onToggleFavorite={handleToggleFavorite}
             />
 
-            <MovieRow
-              title="Action & Suspense"
-              movies={allMovies.filter((m) => m.category === "Action" || m.category === "Thriller")}
-              onMovieClick={setSelectedMovie}
-              onPlayClick={handlePlayTrailer}
-              favorites={favorites}
-              onToggleFavorite={handleToggleFavorite}
-            />
+            {categories.map((category) => {
+              const categoryMovies = allMovies.filter((m) => m.category === category);
+              if (categoryMovies.length === 0) return null;
 
-            <MovieRow
-              title="Sci-Fi & Space Exploration"
-              movies={allMovies.filter((m) => m.category === "Sci-Fi")}
-              onMovieClick={setSelectedMovie}
-              onPlayClick={handlePlayTrailer}
-              favorites={favorites}
-              onToggleFavorite={handleToggleFavorite}
-            />
+              const displayTitle = categoryTitleMapping[category] || category;
 
-            <MovieRow
-              title="Chilling Horrors"
-              movies={allMovies.filter((m) => m.category === "Horror")}
-              onMovieClick={setSelectedMovie}
-              onPlayClick={handlePlayTrailer}
-              favorites={favorites}
-              onToggleFavorite={handleToggleFavorite}
-            />
+              return (
+                <MovieRow
+                  key={category}
+                  title={displayTitle}
+                  movies={categoryMovies}
+                  onMovieClick={setSelectedMovie}
+                  onPlayClick={handlePlayTrailer}
+                  favorites={favorites}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              );
+            })}
 
             {allMovies.filter((m) => favorites.includes(m.id)).length > 0 && (
               <MovieRow
@@ -223,16 +256,16 @@ export default function HomePage() {
               <p className="text-lg text-zinc-400 font-light">
                 We couldn't find any matches.
               </p>
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedCategory(null);
                   setShowMyListOnly(false);
                 }}
-                className="px-6 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm font-semibold cursor-pointer"
               >
                 Clear Filters
-              </button>
+              </Button>
             </div>
           ) : (
             <MovieGrid
@@ -274,6 +307,7 @@ export default function HomePage() {
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={handleLoginSuccess}
       />
+      <Toast />
     </div>
   );
 }

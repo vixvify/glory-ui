@@ -6,6 +6,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { Movie } from "@/core/domain/movie";
+import { Button } from "@/components/ui/Button";
 
 interface Props {
   movies: Movie[];
@@ -97,7 +98,7 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
         </button>
       </div>
 
-      <div className="max-w-2xl relative z-10 space-y-4 md:space-y-6 mt-16 transition-all duration-500 transform translate-y-0">
+      <div className="max-w-4xl relative z-10 space-y-4 md:space-y-6 pt-16 md:pt-20 transition-all duration-500 transform translate-y-0">
         <div className="flex items-center gap-2 animate-fade-in" key={`badge-${currentMovie.id}`}>
           <span className="bg-brand text-white text-[10px] md:text-xs font-black px-1.5 py-0.5 rounded tracking-widest leading-none shadow-md">
             FILM
@@ -108,7 +109,7 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
         </div>
 
         <h1
-          className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-wide leading-none select-none drop-shadow-xl font-sans animate-fade-in"
+          className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-wide leading-tight select-none drop-shadow-xl font-sans animate-fade-in"
           key={`title-${currentMovie.id}`}
         >
           {currentMovie.title}
@@ -137,21 +138,23 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
         </p>
 
         <div className="flex items-center gap-3.5 pt-2">
-          <button
+          <Button
+            variant="white"
             onClick={() => onPlayClick(currentMovie)}
-            className="flex items-center gap-2 px-6 md:px-8 py-2.5 md:py-3.5 rounded-lg bg-white text-black font-bold text-sm md:text-base hover:bg-white/85 active:scale-95 transition-all shadow-xl shadow-black/20 cursor-pointer"
+            className="px-6 md:px-8 py-2.5 md:py-3.5 flex items-center gap-2"
           >
             <PlayArrowIcon className="text-xl md:text-2xl" />
             Play
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="outline"
             onClick={() => onInfoClick(currentMovie)}
-            className="flex items-center gap-2 px-6 md:px-8 py-2.5 md:py-3.5 rounded-lg bg-zinc-600/40 text-white font-bold text-sm md:text-base hover:bg-zinc-600/60 active:scale-95 border border-zinc-500/20 backdrop-blur-md transition-all cursor-pointer"
+            className="bg-zinc-600/20 backdrop-blur-md hover:bg-zinc-600/45 active:scale-95 font-bold px-6 md:px-8 py-2.5 md:py-3.5 flex items-center gap-2 border border-zinc-500/25"
           >
             <InfoOutlinedIcon className="text-xl md:text-2xl" />
             More Info
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -160,9 +163,8 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
           <button
             key={index}
             onClick={() => setActiveIndex(index)}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-              index === activeIndex ? "bg-brand scale-125 w-6" : "bg-zinc-600/80 hover:bg-zinc-400"
-            }`}
+            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${index === activeIndex ? "bg-brand scale-125 w-6" : "bg-zinc-600/80 hover:bg-zinc-400"
+              }`}
           />
         ))}
       </div>

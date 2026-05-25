@@ -22,6 +22,8 @@ import { createMovieSchema } from "@/core/schema/movie";
 import { movieService, authService } from "@/infra/container";
 import { useAppStore } from "@/store/useStore";
 import Loading from "../loading";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 type MovieForm = {
   title: string;
@@ -42,7 +44,7 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortBy, setSortBy] = useState<Sortby>("title");
-  const { currentUser, setCurrentUser, fetchCurrentUser } = useAppStore();
+  const { currentUser, setCurrentUser } = useAppStore();
 
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availableAgeRatings, setAvailableAgeRatings] = useState<string[]>([]);
@@ -88,7 +90,6 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    fetchCurrentUser();
     loadMovies();
     loadMetadata();
   }, []);
@@ -244,6 +245,7 @@ export default function AdminPage() {
           setCurrentUser(null);
         }}
         onSignInClick={() => { }}
+        categories={availableCategories}
       />
 
       <main className="flex-1 px-6 md:px-16 pt-28 max-w-7xl mx-auto w-full space-y-8 animate-fade-in">
@@ -261,13 +263,13 @@ export default function AdminPage() {
             </h1>
           </div>
 
-          <button
+          <Button
             onClick={handleOpenAdd}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand text-white font-semibold text-sm hover:bg-brand-hover active:scale-95 transition-all shadow-lg shadow-brand/20 cursor-pointer"
+            className="flex items-center justify-center gap-2"
           >
             <AddIcon className="text-lg" />
             Add New Movie
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -483,19 +485,12 @@ export default function AdminPage() {
               </div>
 
               <form id="movie-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-300">Title</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Interstellar"
-                    {...register("title", { required: "Title is required" })}
-                    className={`w-full bg-black/40 border ${errors.title ? "border-red-500 focus:border-red-500" : "border-zinc-800 focus:border-brand"
-                      } rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors`}
-                  />
-                  {errors.title && (
-                    <span className="text-[10px] text-red-500 block pl-1 font-semibold">{errors.title.message}</span>
-                  )}
-                </div>
+                <Input
+                  label="Title"
+                  placeholder="e.g. Interstellar"
+                  error={errors.title?.message}
+                  {...register("title", { required: "Title is required" })}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -528,55 +523,36 @@ export default function AdminPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-zinc-300">Year</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 2024"
-                      {...register("year", {
-                        required: "Year is required",
-                        min: { value: 1900, message: "Invalid year" },
-                        max: { value: 2100, message: "Invalid year" },
-                      })}
-                      className={`w-full bg-black/40 border ${errors.year ? "border-red-500" : "border-zinc-800"
-                        } rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition-colors`}
-                    />
-                    {errors.year && (
-                      <span className="text-[10px] text-red-500 block pl-1 font-semibold">{errors.year.message}</span>
-                    )}
-                  </div>
+                  <Input
+                    label="Year"
+                    type="number"
+                    placeholder="e.g. 2024"
+                    error={errors.year?.message}
+                    {...register("year", {
+                      required: "Year is required",
+                      min: { value: 1900, message: "Invalid year" },
+                      max: { value: 2100, message: "Invalid year" },
+                    })}
+                  />
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-zinc-300">Match %</label>
-                    <input
-                      type="number"
-                      placeholder="98"
-                      {...register("matchRate", {
-                        required: "Match rate is required",
-                        min: { value: 0, message: "Min 0%" },
-                        max: { value: 100, message: "Max 100%" },
-                      })}
-                      className={`w-full bg-black/40 border ${errors.matchRate ? "border-red-500" : "border-zinc-800"
-                        } rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition-colors`}
-                    />
-                    {errors.matchRate && (
-                      <span className="text-[10px] text-red-500 block pl-1 font-semibold">{errors.matchRate.message}</span>
-                    )}
-                  </div>
+                  <Input
+                    label="Match %"
+                    type="number"
+                    placeholder="98"
+                    error={errors.matchRate?.message}
+                    {...register("matchRate", {
+                      required: "Match rate is required",
+                      min: { value: 0, message: "Min 0%" },
+                      max: { value: 100, message: "Max 100%" },
+                    })}
+                  />
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-zinc-300">Duration</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 2h 10m"
-                      {...register("duration", { required: "Duration is required" })}
-                      className={`w-full bg-black/40 border ${errors.duration ? "border-red-500" : "border-zinc-800"
-                        } rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition-colors`}
-                    />
-                    {errors.duration && (
-                      <span className="text-[10px] text-red-500 block pl-1 font-semibold">{errors.duration.message}</span>
-                    )}
-                  </div>
+                  <Input
+                    label="Duration"
+                    placeholder="e.g. 2h 10m"
+                    error={errors.duration?.message}
+                    {...register("duration", { required: "Duration is required" })}
+                  />
                 </div>
 
                 <div className="space-y-1.5">
@@ -618,19 +594,12 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-zinc-300">YouTube Trailer URL</label>
-                  <input
-                    type="text"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    {...register("youtubeUrl", { required: "YouTube URL is required" })}
-                    className={`w-full bg-black/40 border ${errors.youtubeUrl ? "border-red-500" : "border-zinc-800"
-                      } rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition-colors`}
-                  />
-                  {errors.youtubeUrl && (
-                    <span className="text-[10px] text-red-500 block pl-1 font-semibold">{errors.youtubeUrl.message}</span>
-                  )}
-                </div>
+                <Input
+                  label="YouTube Trailer URL"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  error={errors.youtubeUrl?.message}
+                  {...register("youtubeUrl", { required: "YouTube URL is required" })}
+                />
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-zinc-300">Description</label>
@@ -649,20 +618,21 @@ export default function AdminPage() {
             </div>
 
             <div className="pt-6 border-t border-zinc-800/40 flex items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setIsFormOpen(false)}
-                className="flex-1 py-3 text-sm font-semibold bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl active:scale-[0.98] transition-all cursor-pointer"
+                className="flex-1 py-3 text-sm font-semibold rounded-xl"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 form="movie-form"
-                className="flex-1 py-3 text-sm font-semibold bg-brand hover:bg-brand-hover text-white rounded-xl active:scale-[0.98] transition-all shadow-lg shadow-brand/20 cursor-pointer"
+                className="flex-1 py-3 text-sm font-semibold rounded-xl"
               >
                 {editingMovie ? "Save Changes" : "Publish Film"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -683,18 +653,19 @@ export default function AdminPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => setDeleteMovieId(null)}
-                className="flex-1 py-2.5 text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl active:scale-[0.98] transition-all cursor-pointer"
+                className="flex-1 py-2.5 text-xs font-semibold rounded-xl"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleDeleteConfirm}
-                className="flex-1 py-2.5 text-xs font-semibold bg-red-500 hover:bg-red-600 text-white rounded-xl active:scale-[0.98] transition-all shadow-lg shadow-red-500/20 cursor-pointer"
+                className="flex-1 py-2.5 text-xs font-semibold bg-red-500 hover:bg-red-600 text-white border-0 rounded-xl shadow-lg shadow-red-500/20"
               >
                 Delete Title
-              </button>
+              </Button>
             </div>
           </div>
         </div>

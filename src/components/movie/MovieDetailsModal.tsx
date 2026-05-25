@@ -11,6 +11,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import { Movie } from "@/core/domain/movie";
 import { User } from "@/core/domain/user";
+import { Button } from "@/components/ui/Button";
 
 interface MovieDetailsModalProps {
   isOpen: boolean;
@@ -92,13 +93,14 @@ export default function MovieDetailsModal({
               </h2>
 
               <div className="flex flex-wrap items-center gap-3">
-                <button
+                <Button
+                  variant="white"
                   onClick={onPlayTrailer}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-white text-black font-semibold text-sm hover:bg-white/85 active:scale-95 transition-all cursor-pointer shadow-lg"
+                  className="text-sm px-6 py-2.5 flex items-center gap-2 shadow-lg"
                 >
                   <PlayArrowIcon className="text-xl" />
                   Play Trailer
-                </button>
+                </Button>
 
                 <button
                   onClick={() => onToggleFavorite(movie.id)}
@@ -259,25 +261,26 @@ export default function MovieDetailsModal({
                     </div>
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
-                    className="w-full py-2.5 rounded-lg bg-brand text-white font-semibold text-sm hover:bg-brand-hover active:scale-95 transition-all shadow-md shadow-brand/10 cursor-pointer"
+                    className="w-full"
                   >
                     Submit Rating
-                  </button>
+                  </Button>
                 </form>
               ) : (
                 <div className="text-center py-4 space-y-3">
                   <p className="text-xs text-zinc-400 leading-relaxed font-light">
                     You need to be signed in to rate movies and leave reviews.
                   </p>
-                  <button
+                  <Button
+                    variant="secondary"
                     onClick={onSignInClick}
-                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-zinc-800 text-white font-semibold text-xs hover:bg-zinc-700 active:scale-95 transition-all shadow-md cursor-pointer"
+                    className="w-full py-2.5 text-xs flex items-center justify-center gap-2"
                   >
                     <LockOpenIcon className="text-sm text-brand" />
                     Sign In to Rate
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

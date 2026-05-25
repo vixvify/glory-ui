@@ -6,6 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
 import StarIcon from "@mui/icons-material/Star";
 import { Movie } from "../../core/domain/movie";
+import { useAppStore } from "@/store/useStore";
 
 interface Props {
   movie: Movie;
@@ -24,6 +25,7 @@ export default function MovieCard({
 }: Props) {
   const totalScore = movie.ratings.reduce((sum, r) => sum + r.stars, 0);
   const averageRating = movie.ratings.length > 0 ? totalScore / movie.ratings.length : 0;
+  const { currentUser } = useAppStore()
 
   return (
     <div
@@ -90,7 +92,7 @@ export default function MovieCard({
             >
               <PlayArrowIcon className="text-base" />
             </button>
-            <button
+            {currentUser && <button
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleFavorite(e);
@@ -102,7 +104,7 @@ export default function MovieCard({
               title={isFavorite ? "Remove from My List" : "Add to My List"}
             >
               {isFavorite ? <CheckIcon className="text-base" /> : <AddIcon className="text-base" />}
-            </button>
+            </button>}
           </div>
         </div>
       </div>

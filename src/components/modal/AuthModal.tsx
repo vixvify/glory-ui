@@ -7,10 +7,15 @@ import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { parseSchema } from "@/lib/validation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { registerUserSchema, loginUserSchema } from "@/core/schema/auth";
-import { authService, movieService } from "@/infra/container";
+import { authService } from "@/infra/container";
 import { User } from "@/core/domain/user";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { useAppStore } from "@/store/useStore";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,60 +23,65 @@ interface AuthModalProps {
   onLoginSuccess: (user: User) => void;
 }
 
+type AuthFormValues = z.infer<typeof registerUserSchema>;
+
 export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const { showToast, setCurrentUser } = useAppStore();
+
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<AuthFormValues>({
+    resolver: zodResolver(isSignUp ? registerUserSchema : loginUserSchema) as any,
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: AuthFormValues) => {
     setError("");
 
     try {
       if (isSignUp) {
-        const validated = parseSchema(registerUserSchema, { name, email, password });
         const user = await authService.register({
-          name: validated.name,
-          email: validated.email,
-          password: validated.password,
+          name: data.name!,
+          email: data.email,
+          password: data.password,
         });
+        showToast("Successfully registered! Welcome to ThaiFlix.", "success");
         onLoginSuccess(user);
       } else {
-        const validated = parseSchema(loginUserSchema, { email, password });
         const user = await authService.login({
-          email: validated.email,
-          password: validated.password,
+          email: data.email,
+          password: data.password,
         });
+        showToast("Logged in successfully! Welcome back.", "success");
         onLoginSuccess(user);
+        setCurrentUser(user);
       }
       onClose();
       resetForm();
     } catch (err: any) {
       setError(err.message || "Authentication failed");
+      showToast(err.message || "Authentication failed", "error");
     }
   };
 
-  const handleGuestLogin = () => {
-    const guestUser: User = {
-      name: "Guest",
-      email: "guest@gmail.com",
-      id: "guest",
-      role: "user"
-    };
-    onLoginSuccess(guestUser);
-    onClose();
-    resetForm();
-  };
-
   const resetForm = () => {
-    setEmail("");
-    setPassword("");
-    setName("");
+    reset({
+      name: "",
+      email: "",
+      password: "",
+    });
     setError("");
     setIsSignUp(false);
   };
@@ -103,55 +113,36 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
           {isSignUp && (
-            <div className="space-y-1">
-              <label className="text-xs text-zinc-400 font-medium block">Full Name</label>
-              <div className="relative">
-                <PersonIcon className="absolute left-3 top-2.5 text-zinc-500 text-lg" />
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Somchai Dev"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition-colors placeholder-zinc-600 font-light"
-                />
-              </div>
-            </div>
+            <Input
+              label="Full Name"
+              placeholder="e.g. Somchai Dev"
+              icon={<PersonIcon className="text-zinc-500 text-lg" />}
+              error={errors.name?.message}
+              {...register("name")}
+            />
           )}
 
-          <div className="space-y-1">
-            <label className="text-xs text-zinc-400 font-medium block">Email Address</label>
-            <div className="relative">
-              <EmailIcon className="absolute left-3 top-2.5 text-zinc-500 text-lg" />
-              <input
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition-colors placeholder-zinc-600 font-light"
-              />
-            </div>
-          </div>
+          <Input
+            label="Email Address"
+            placeholder="you@example.com"
+            type="email"
+            icon={<EmailIcon className="text-zinc-500 text-lg" />}
+            error={errors.email?.message}
+            {...register("email")}
+          />
 
-          <div className="space-y-1">
-            <label className="text-xs text-zinc-400 font-medium block">Password</label>
-            <div className="relative">
-              <LockIcon className="absolute left-3 top-2.5 text-zinc-500 text-lg" />
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-brand transition-colors placeholder-zinc-600 font-light"
-              />
+          <Input
+            label="Password"
+            placeholder="••••••••"
+            type={showPassword ? "text" : "password"}
+            icon={<LockIcon className="text-zinc-500 text-lg" />}
+            suffix={
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-zinc-500 hover:text-white cursor-pointer"
+                className="text-zinc-500 hover:text-white cursor-pointer flex items-center justify-center"
               >
                 {showPassword ? (
                   <VisibilityOffIcon className="text-lg" />
@@ -159,15 +150,18 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
                   <VisibilityIcon className="text-lg" />
                 )}
               </button>
-            </div>
-          </div>
+            }
+            error={errors.password?.message}
+            {...register("password")}
+          />
 
-          <button
+          <Button
             type="submit"
-            className="w-full py-3 rounded-lg bg-brand text-white font-bold text-sm hover:bg-brand-hover active:scale-[0.98] transition-all shadow-md shadow-brand/10 cursor-pointer mt-2"
+            isLoading={isSubmitting}
+            className="w-full mt-2"
           >
             {isSignUp ? "Sign Up" : "Sign In"}
-          </button>
+          </Button>
         </form>
 
         <div className="relative flex py-4 items-center">
@@ -176,18 +170,16 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
           <div className="flex-grow border-t border-zinc-800/80"></div>
         </div>
 
-        <button
-          onClick={handleGuestLogin}
-          className="w-full py-2.5 rounded-lg bg-zinc-900 text-zinc-300 border border-zinc-800 hover:text-white hover:border-zinc-700 font-medium text-xs active:scale-[0.98] transition-all cursor-pointer"
-        >
-          Quick Guest Sign In
-        </button>
-
         <div className="text-center mt-6">
           <button
             onClick={() => {
               setIsSignUp(!isSignUp);
               setError("");
+              reset({
+                name: "",
+                email: "",
+                password: "",
+              });
             }}
             className="text-xs text-zinc-400 hover:text-brand transition-colors cursor-pointer"
           >

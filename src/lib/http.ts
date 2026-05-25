@@ -3,6 +3,7 @@ import { ApiResponse } from "@/infra/interface/response";
 
 const http: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },

@@ -5,8 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CloseIcon from "@mui/icons-material/Close";
+import { Button } from "@/components/ui/Button";
+import { User } from "@/core/domain/user";
 
 interface NavbarProps {
   searchQuery: string;
@@ -15,9 +16,10 @@ interface NavbarProps {
   onCategoryChange: (cat: string | null) => void;
   showMyListOnly: boolean;
   onMyListOnlyChange: (val: boolean) => void;
-  currentUser: { name: string; email: string } | null;
+  currentUser: User | null;
   onSignOut: () => void;
   onSignInClick: () => void;
+  categories: string[];
 }
 
 export default function Navbar({
@@ -30,11 +32,13 @@ export default function Navbar({
   currentUser,
   onSignOut,
   onSignInClick,
+  categories = [],
 }: NavbarProps) {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showMoviesMenu, setShowMoviesMenu] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,6 +51,18 @@ export default function Navbar({
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".relative")) {
+        setShowProfileMenu(false);
+        setShowMoviesMenu(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const handleNavClick = (category: string | null, myList: boolean = false) => {
@@ -62,8 +78,8 @@ export default function Navbar({
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 md:px-16 py-4 transition-all duration-500 ease-out ${isScrolled
-          ? "bg-background/95 backdrop-blur-md border-b border-zinc-800/40 shadow-xl shadow-black/20"
-          : "bg-transparent"
+        ? "bg-background/95 backdrop-blur-md border-b border-zinc-800/40 shadow-xl shadow-black/20"
+        : "bg-transparent"
         }`}
     >
       <div className="flex items-center gap-8">
@@ -85,27 +101,55 @@ export default function Navbar({
           >
             Home
           </Link>
-          <button
-            onClick={() => handleNavClick("Action", false)}
-            className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/" && selectedCategory === "Action" ? "text-white font-semibold" : ""
+
+          {/* Movies Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowMoviesMenu(!showMoviesMenu)}
+              className={`flex items-center gap-1 cursor-pointer transition-colors duration-305 hover:text-white focus:outline-none ${
+                selectedCategory ? "text-white font-semibold" : ""
               }`}
-          >
-            Action
-          </button>
-          <button
-            onClick={() => handleNavClick("Sci-Fi", false)}
-            className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/" && selectedCategory === "Sci-Fi" ? "text-white font-semibold" : ""
-              }`}
-          >
-            Sci-Fi
-          </button>
-          <button
-            onClick={() => handleNavClick("Horror", false)}
-            className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/" && selectedCategory === "Horror" ? "text-white font-semibold" : ""
-              }`}
-          >
-            Horror
-          </button>
+            >
+              Movies
+              <div className={`w-0 h-0 border-l-4 border-r-4 border-t-4 border-t-zinc-400 border-l-transparent border-r-transparent transition-transform duration-300 ${showMoviesMenu ? "rotate-180 border-t-white" : ""}`} />
+            </button>
+
+            {showMoviesMenu && (
+              <div className="absolute left-0 mt-3 w-56 bg-card/95 backdrop-blur-md rounded-xl border border-zinc-850 p-2 shadow-2xl animate-fade-in z-50">
+                <div className="px-3 py-1.5 border-b border-zinc-800/80 mb-1">
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Select Category</p>
+                </div>
+                <div className="max-h-60 overflow-y-auto pr-1 no-scrollbar space-y-0.5">
+                  <button
+                    onClick={() => {
+                      handleNavClick(null, false);
+                      setShowMoviesMenu(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${
+                      !selectedCategory && !showMyListOnly ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
+                    }`}
+                  >
+                    All Movies
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        handleNavClick(cat, false);
+                        setShowMoviesMenu(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${
+                        selectedCategory === cat ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => handleNavClick(null, true)}
             className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/" && showMyListOnly ? "text-white font-semibold" : ""
@@ -113,21 +157,21 @@ export default function Navbar({
           >
             My List
           </button>
-          <Link
+          {currentUser && currentUser?.role === "admin" && <Link
             href="/admin"
             className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/admin" ? "text-white font-semibold" : ""
               }`}
           >
             Admin
-          </Link>
+          </Link>}
         </div>
       </div>
 
       <div className="flex items-center gap-4 md:gap-6">
         <div
           className={`flex items-center gap-2 px-2 py-1 rounded border transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${isSearchExpanded
-              ? "w-40 md:w-64 bg-black/60 border-zinc-600 scale-100 opacity-100"
-              : "w-8 bg-transparent border-transparent"
+            ? "w-40 md:w-64 bg-black/60 border-zinc-600 scale-100 opacity-100"
+            : "w-8 bg-transparent border-transparent"
             }`}
         >
           <button
@@ -194,12 +238,12 @@ export default function Navbar({
             )}
           </div>
         ) : (
-          <button
+          <Button
             onClick={onSignInClick}
-            className="px-4 py-1.5 rounded-lg bg-brand text-white font-semibold text-xs hover:bg-brand-hover cursor-pointer active:scale-95 transition-all shadow-md shadow-brand/10"
+            size="sm"
           >
             Sign In
-          </button>
+          </Button>
         )}
       </div>
     </nav>
