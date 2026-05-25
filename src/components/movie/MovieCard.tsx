@@ -7,6 +7,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import StarIcon from "@mui/icons-material/Star";
 import { Movie } from "../../core/domain/movie";
 import { useAppStore } from "@/store/useStore";
+import { categoryTitleMapping } from "@/core/constants/categories";
 
 interface Props {
   movie: Movie;
@@ -47,7 +48,7 @@ export default function MovieCard({
         </div>
 
         <span className="absolute top-2 left-2 px-2 py-0.5 text-[9px] font-bold tracking-wider bg-black/60 backdrop-blur-md text-zinc-300 border border-zinc-700/50 rounded uppercase">
-          {movie.category}
+          {categoryTitleMapping[movie.category]}
         </span>
       </div>
 
@@ -88,7 +89,7 @@ export default function MovieCard({
                 onPlayClick(e);
               }}
               className="p-1 rounded-full bg-zinc-800 text-white hover:bg-white hover:text-black hover:scale-105 active:scale-95 transition-all shadow cursor-pointer border border-zinc-700/50"
-              title="Play Trailer"
+              title="ตัวอย่างภาพยนตร์"
             >
               <PlayArrowIcon className="text-base" />
             </button>
@@ -101,7 +102,7 @@ export default function MovieCard({
                 ? "bg-zinc-800 border-zinc-500 text-green-400 hover:border-white"
                 : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
                 }`}
-              title={isFavorite ? "Remove from My List" : "Add to My List"}
+              title={isFavorite ? "ลบจากรายการของฉัน" : "เพิ่มในรายการของฉัน"}
             >
               {isFavorite ? <CheckIcon className="text-base" /> : <AddIcon className="text-base" />}
             </button>}

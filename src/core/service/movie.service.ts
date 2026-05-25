@@ -2,6 +2,7 @@ import { Movie, CreateMovie, UpdateMovie } from "../domain/movie";
 import { MovieRepository } from "../ports/movie.repository";
 import { parseSchema } from "@/lib/validation";
 import { createMovieSchema, updateMovieSchema } from "../schema/movie";
+import { Rating, RatingCheckInput, RatingInput } from "../domain/rating";
 
 export class MovieService {
     constructor(private readonly movieRepository: MovieRepository) { }
@@ -186,6 +187,75 @@ export class MovieService {
             return response.data;
         } catch (error) {
             console.error("Error in getAgeRatings:", error);
+            throw error;
+        }
+    }
+    async addRating(data: RatingInput): Promise<void> {
+        try {
+            const response = await this.movieRepository.addRating(data);
+            if (response.error) {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error("Error in addRating");
+            throw error;
+        }
+    }
+    async checkRating(data: RatingCheckInput): Promise<boolean> {
+        try {
+            const response = await this.movieRepository.checkRating(data);
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            return response.data;
+        } catch (error) {
+            console.error("Error in checkRating");
+            throw error;
+        }
+    }
+    async deleteRating(data: RatingCheckInput): Promise<void> {
+        try {
+            const response = await this.movieRepository.deleteRating(data);
+            if (response.error) {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error("Error in deleteRating");
+            throw error;
+        }
+    }
+    async updateRating(data: RatingInput): Promise<void> {
+        try {
+            const response = await this.movieRepository.updateRating(data);
+            if (response.error) {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error("Error in updateRating");
+            throw error;
+        }
+    }
+    async getRatingByMovie(movieId: string): Promise<Rating[]> {
+        try {
+            const response = await this.movieRepository.getRatingByMovie(movieId);
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            return response.data;
+        } catch (error) {
+            console.error(`Error in getRatingByMovie (movieId: ${movieId}):`, error);
+            throw error;
+        }
+    }
+    async getRatingByUser(userId: string): Promise<Rating[]> {
+        try {
+            const response = await this.movieRepository.getRatingByUser(userId);
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            return response.data;
+        } catch (error) {
+            console.error(`Error in getRatingByUser (userId: ${userId}):`, error);
             throw error;
         }
     }

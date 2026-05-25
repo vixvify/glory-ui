@@ -81,6 +81,7 @@ export default function Navbar({
         ? "bg-background/95 backdrop-blur-md border-b border-zinc-800/40 shadow-xl shadow-black/20"
         : "bg-transparent"
         }`}
+      style={{ fontFamily: "var(--font-kanit), Arial, Helvetica, sans-serif" }}
     >
       <div className="flex items-center gap-8">
         <Link
@@ -99,25 +100,23 @@ export default function Navbar({
             className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/" && !selectedCategory && !showMyListOnly ? "text-white font-semibold" : ""
               }`}
           >
-            Home
+            หน้าแรก
           </Link>
 
-          {/* Movies Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowMoviesMenu(!showMoviesMenu)}
-              className={`flex items-center gap-1 cursor-pointer transition-colors duration-305 hover:text-white focus:outline-none ${
-                selectedCategory ? "text-white font-semibold" : ""
-              }`}
+              className={`flex items-center gap-1 cursor-pointer transition-colors duration-305 hover:text-white focus:outline-none ${selectedCategory ? "text-white font-semibold" : ""
+                }`}
             >
-              Movies
+              ภาพยนตร์
               <div className={`w-0 h-0 border-l-4 border-r-4 border-t-4 border-t-zinc-400 border-l-transparent border-r-transparent transition-transform duration-300 ${showMoviesMenu ? "rotate-180 border-t-white" : ""}`} />
             </button>
 
             {showMoviesMenu && (
               <div className="absolute left-0 mt-3 w-56 bg-card/95 backdrop-blur-md rounded-xl border border-zinc-850 p-2 shadow-2xl animate-fade-in z-50">
                 <div className="px-3 py-1.5 border-b border-zinc-800/80 mb-1">
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Select Category</p>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">หมวดหมู่</p>
                 </div>
                 <div className="max-h-60 overflow-y-auto pr-1 no-scrollbar space-y-0.5">
                   <button
@@ -125,11 +124,10 @@ export default function Navbar({
                       handleNavClick(null, false);
                       setShowMoviesMenu(false);
                     }}
-                    className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${
-                      !selectedCategory && !showMyListOnly ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
-                    }`}
+                    className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${!selectedCategory && !showMyListOnly ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
+                      }`}
                   >
-                    All Movies
+                    หนังทั้งหมด
                   </button>
                   {categories.map((cat) => (
                     <button
@@ -138,9 +136,8 @@ export default function Navbar({
                         handleNavClick(cat, false);
                         setShowMoviesMenu(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${
-                        selectedCategory === cat ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
-                      }`}
+                      className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${selectedCategory === cat ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
+                        }`}
                     >
                       {cat}
                     </button>
@@ -155,14 +152,14 @@ export default function Navbar({
             className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/" && showMyListOnly ? "text-white font-semibold" : ""
               }`}
           >
-            My List
+            รายการของฉัน
           </button>
           {currentUser && currentUser?.role === "admin" && <Link
             href="/admin"
             className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/admin" ? "text-white font-semibold" : ""
               }`}
           >
-            Admin
+            ผู้ดูแล
           </Link>}
         </div>
       </div>
@@ -184,7 +181,7 @@ export default function Navbar({
             <>
               <input
                 type="text"
-                placeholder="Titles, genres..."
+                placeholder="วันนี้อยากดูอะไร..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full bg-transparent text-sm text-white focus:outline-none placeholder-zinc-500"
@@ -232,7 +229,7 @@ export default function Navbar({
                   }}
                   className="w-full text-left px-3 py-2 text-xs text-red-400 hover:text-red-300 hover:bg-zinc-800/60 rounded-lg cursor-pointer transition-colors"
                 >
-                  Sign Out
+                  ออกจากระบบ
                 </button>
               </div>
             )}
@@ -242,7 +239,7 @@ export default function Navbar({
             onClick={onSignInClick}
             size="sm"
           >
-            Sign In
+            เข้าสู่ระบบ
           </Button>
         )}
       </div>

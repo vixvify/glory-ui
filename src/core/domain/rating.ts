@@ -12,3 +12,14 @@ export interface Rating {
   movie: Movie;
   user: User;
 }
+
+export interface RatingInput {
+  movieId: string;
+  userId: string;
+  stars: number;
+}
+
+export interface RatingCheckInput {
+  movieId: string;
+  userId: string;
+}

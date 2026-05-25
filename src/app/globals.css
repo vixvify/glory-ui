@@ -48,7 +48,7 @@
   --color-brand-hover: var(--theme-primary-hover);
   --color-card: var(--theme-card);
   --color-card-hover: var(--theme-card-hover);
-  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-kanit), Arial, Helvetica, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 

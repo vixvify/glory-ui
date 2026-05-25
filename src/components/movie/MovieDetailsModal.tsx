@@ -86,7 +86,7 @@ export default function MovieDetailsModal({
           <div className="absolute bottom-6 left-6 md:left-12 flex flex-wrap items-end gap-4 z-10 w-[90%]">
             <div>
               <div className="text-sm font-semibold tracking-wider text-brand mb-1">
-                THAIFLIX ORIGINAL
+                GLORY ORIGINAL
               </div>
               <h2 className="text-2xl md:text-5xl font-extrabold text-white tracking-wide drop-shadow-md mb-4">
                 {movie.title}
@@ -99,7 +99,7 @@ export default function MovieDetailsModal({
                   className="text-sm px-6 py-2.5 flex items-center gap-2 shadow-lg"
                 >
                   <PlayArrowIcon className="text-xl" />
-                  Play Trailer
+                  เล่นตัวอย่าง
                 </Button>
 
                 <button
@@ -108,7 +108,7 @@ export default function MovieDetailsModal({
                     ? "bg-zinc-800 border-zinc-400 text-emerald-400 hover:border-white"
                     : "bg-[#181818]/60 border-zinc-500 text-white hover:border-white hover:bg-zinc-800"
                     }`}
-                  title={isFavorite ? "Remove from My List" : "Add to My List"}
+                  title={isFavorite ? "ลบจากรายการของฉัน" : "เพิ่มในรายการของฉัน"}
                 >
                   {isFavorite ? <CheckIcon className="text-lg" /> : <AddIcon className="text-lg" />}
                 </button>
@@ -121,7 +121,7 @@ export default function MovieDetailsModal({
           <div className="md:col-span-2 space-y-6">
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <span className="text-emerald-400 font-bold tracking-tight">
-                {movie.matchRate}% Match
+                {movie.matchRate}% ตรงกับคุณ
               </span>
               <span className="text-zinc-400">{movie.year}</span>
               <span className="px-1.5 py-0.5 text-xs font-semibold border border-zinc-500 text-zinc-300 rounded">
@@ -141,12 +141,12 @@ export default function MovieDetailsModal({
 
             <div className="space-y-4">
               <h4 className="text-lg font-bold text-white tracking-wide">
-                Audience Reviews ({movie.ratings.length})
+                รีวิวจากผู้ชม ({movie.ratings.length})
               </h4>
 
               <div className="space-y-3.5 max-h-64 overflow-y-auto pr-2 no-scrollbar">
                 {movie.ratings.length === 0 ? (
-                  <p className="text-zinc-500 text-sm italic">No reviews yet. Be the first to leave one!</p>
+                  <p className="text-zinc-500 text-sm italic">ยังไม่มีรีวิวจากผู้ชม</p>
                 ) : (
                   movie.ratings.map((rating, idx) => (
                     <div
@@ -185,7 +185,7 @@ export default function MovieDetailsModal({
           <div className="space-y-6">
             <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-850 text-center space-y-2 shadow-xl shadow-black/10">
               <span className="text-zinc-500 text-xs uppercase tracking-widest font-semibold">
-                Average Rating
+                คะแนนเฉลี่ย
               </span>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-4xl font-extrabold text-white">
@@ -205,41 +205,41 @@ export default function MovieDetailsModal({
                 ))}
               </div>
               <p className="text-xs text-zinc-500 font-light">
-                Based on {movie.ratings.length} reviews
+                จากการรีวิว {movie.ratings.length} รายการ
               </p>
             </div>
 
             <div className="p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 space-y-4 shadow-xl">
               <h5 className="text-sm font-bold text-white tracking-wide uppercase">
-                Rate this Movie
+                ให้คะแนนหนังนี้
               </h5>
 
               {isSubmitted ? (
                 <div className="text-center py-4 space-y-2 animate-fade-in">
                   <span className="text-emerald-400 font-semibold text-sm">
-                    Thank you!
+                    ขอบคุณ!
                   </span>
                   <p className="text-xs text-zinc-400 font-light">
-                    Your rating has been recorded.
+                    บันทึกคะแนนของคุณเรียบร้อยแล้ว.
                   </p>
                   <button
                     onClick={() => setIsSubmitted(false)}
                     className="text-xs text-brand font-medium hover:underline cursor-pointer"
                   >
-                    Leave another?
+                    อยากให้คะแนนอีกครั้ง?
                   </button>
                 </div>
               ) : currentUser ? (
                 <form onSubmit={handleSubmitReview} className="space-y-4">
                   <div className="p-3 bg-zinc-900/60 rounded-lg border border-zinc-800 flex items-center justify-between gap-2">
-                    <span className="text-xs text-zinc-400 font-medium">Reviewing as:</span>
+                    <span className="text-xs text-zinc-400 font-medium">รีวิวจากผู้ใช้:</span>
                     <span className="text-xs font-bold text-white truncate max-w-[120px] bg-brand/10 px-2 py-0.5 rounded border border-brand/20">
                       {currentUser.name || currentUser.email}
                     </span>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs text-zinc-400 font-medium block">Rating Score</label>
+                    <label className="text-xs text-zinc-400 font-medium block">คะแนน</label>
                     <div className="flex items-center justify-between px-1">
                       {Array.from({ length: 5 }).map((_, i) => {
                         const scoreValue = i + 1;
@@ -265,13 +265,13 @@ export default function MovieDetailsModal({
                     type="submit"
                     className="w-full"
                   >
-                    Submit Rating
+                    ส่งคะแนน
                   </Button>
                 </form>
               ) : (
                 <div className="text-center py-4 space-y-3">
                   <p className="text-xs text-zinc-400 leading-relaxed font-light">
-                    You need to be signed in to rate movies and leave reviews.
+                    คุณต้องเข้าสู่ระบบเพื่อให้คะแนนและแสดงความคิดเห็น
                   </p>
                   <Button
                     variant="secondary"
@@ -279,7 +279,7 @@ export default function MovieDetailsModal({
                     className="w-full py-2.5 text-xs flex items-center justify-center gap-2"
                   >
                     <LockOpenIcon className="text-sm text-brand" />
-                    Sign In to Rate
+                    เข้าสู่ระบบเพื่อให้คะแนน
                   </Button>
                 </div>
               )}

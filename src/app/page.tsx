@@ -69,7 +69,7 @@ export default function HomePage() {
   const handleSignOut = async () => {
     try {
       await authService.logout();
-      showToast("Logged out successfully.", "info");
+      showToast("ออกจากระบบสำเร็จ", "info");
     } catch (err) {
       console.error(err);
     }
@@ -87,11 +87,11 @@ export default function HomePage() {
       if (isCurrentlyFavorite) {
         setFavorites((prev) => prev.filter((id) => id !== movieId));
         await movieService.removeFavorite(movieId);
-        showToast("Removed from My List", "info");
+        showToast("นำออกจากรายการโปรดแล้ว", "info");
       } else {
         setFavorites((prev) => [...prev, movieId]);
         await movieService.addFavorite(movieId);
-        showToast("Added to My List", "success");
+        showToast("เพิ่มลงในรายการโปรดแล้ว", "success");
       }
 
     } catch (error) {
@@ -99,35 +99,42 @@ export default function HomePage() {
     }
   };
 
-  const handleAddRating = (
+  const handleAddRating = async (
     movieId: string,
     user: User,
     stars: number
   ) => {
-    setAllMovies((prevMovies) =>
-      prevMovies.map((movie) => {
-        if (movie.id === movieId) {
-          return {
-            ...movie,
-            ratings: [
-              ...movie.ratings,
-              {
-                id: crypto.randomUUID(),
-                movieId,
-                userId: user.id,
-                stars,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                movie,
-                user,
-              },
-            ],
-          };
-        }
+    try {
+      await movieService.addRating({ userId: user.id, movieId, stars });
+      showToast("เพิ่มคะแนนแล้ว", "success");
+    } catch (error) {
+      showToast("เกิดข้อผิดพลาด", "error");
+    }
+  };
 
-        return movie;
-      })
-    );
+  const handleUpdateRating = async (
+    movieId: string,
+    user: User,
+    stars: number
+  ) => {
+    try {
+      await movieService.updateRating({ userId: user.id, movieId, stars });
+      showToast("แก้ไขคะแนนแล้ว", "success");
+    } catch (error) {
+      showToast("เกิดข้อผิดพลาด", "error");
+    }
+  };
+
+  const handleDeleteRating = async (
+    movieId: string,
+    user: User
+  ) => {
+    try {
+      await movieService.deleteRating({ userId: user.id, movieId });
+      showToast("ลบคะแนนแล้ว", "success");
+    } catch (error) {
+      showToast("เกิดข้อผิดพลาด", "error");
+    }
   };
 
   const handlePlayTrailer = (movie: Movie) => {
@@ -197,7 +204,7 @@ export default function HomePage() {
 
           <div className="relative z-20 px-6 md:px-16 space-y-12 -mt-6 md:-mt-10">
             <MovieRow
-              title="Trending Now"
+              title="ยอดนิยม"
               movies={allMovies}
               onMovieClick={setSelectedMovie}
               onPlayClick={handlePlayTrailer}
@@ -226,7 +233,7 @@ export default function HomePage() {
 
             {allMovies.filter((m) => favorites.includes(m.id)).length > 0 && (
               <MovieRow
-                title="My List"
+                title="รายการของฉัน"
                 movies={allMovies.filter((m) => favorites.includes(m.id))}
                 onMovieClick={setSelectedMovie}
                 onPlayClick={handlePlayTrailer}
@@ -241,20 +248,20 @@ export default function HomePage() {
           <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
             <h2 className="text-2xl md:text-3xl font-extrabold tracking-wide">
               {searchQuery
-                ? `Search Results for "${searchQuery}"`
+                ? `ผลลัพธ์การค้นหา "${searchQuery}"`
                 : showMyListOnly
-                  ? "My List"
-                  : `${selectedCategory} Movies`}
+                  ? "รายการของฉัน"
+                  : `${selectedCategory} หนัง`}
             </h2>
             <span className="text-sm text-zinc-400">
-              {filteredMovies.length} {filteredMovies.length === 1 ? "title" : "titles"} found
+              {filteredMovies.length} {filteredMovies.length === 1 ? "เรื่อง" : "เรื่อง"} ที่พบ
             </span>
           </div>
 
           {filteredMovies.length === 0 ? (
             <div className="text-center py-24 space-y-4">
               <p className="text-lg text-zinc-400 font-light">
-                We couldn't find any matches.
+                ไม่พบผลลัพธ์ที่ตรงกัน
               </p>
               <Button
                 variant="secondary"
@@ -264,7 +271,7 @@ export default function HomePage() {
                   setShowMyListOnly(false);
                 }}
               >
-                Clear Filters
+                ล้างตัวกรอง
               </Button>
             </div>
           ) : (

@@ -57,14 +57,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
           email: data.email,
           password: data.password,
         });
-        showToast("Successfully registered! Welcome to ThaiFlix.", "success");
+        showToast("ลงทะเบียนสำเร็จ! ยินดีต้อนรับสู่ ThaiFlix.", "success");
         onLoginSuccess(user);
       } else {
         const user = await authService.login({
           email: data.email,
           password: data.password,
         });
-        showToast("Logged in successfully! Welcome back.", "success");
+        showToast("เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับกลับ.", "success");
         onLoginSuccess(user);
         setCurrentUser(user);
       }
@@ -100,10 +100,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
 
         <div className="text-center mb-6">
           <h2 className="text-3xl font-extrabold text-white tracking-tight mb-2">
-            {isSignUp ? "Create Account" : "Sign In"}
+            {isSignUp ? "สร้างบัญชี" : "เข้าสู่ระบบ"}
           </h2>
           <p className="text-xs text-zinc-400">
-            {isSignUp ? "Join ThaiFlix to rate and review" : "Welcome back to ThaiFlix"}
+            {isSignUp ? "เข้าร่วม ThaiFlix เพื่อให้คะแนนและรีวิว" : "ยินดีต้อนรับกลับสู่ ThaiFlix"}
           </p>
         </div>
 
@@ -116,8 +116,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
         <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
           {isSignUp && (
             <Input
-              label="Full Name"
-              placeholder="e.g. Somchai Dev"
+              label="ชื่อเต็ม"
+              placeholder="เช่น สมชาย Dev"
               icon={<PersonIcon className="text-zinc-500 text-lg" />}
               error={errors.name?.message}
               {...register("name")}
@@ -125,7 +125,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
           )}
 
           <Input
-            label="Email Address"
+            label="ที่อยู่อีเมล"
             placeholder="you@example.com"
             type="email"
             icon={<EmailIcon className="text-zinc-500 text-lg" />}
@@ -134,7 +134,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
           />
 
           <Input
-            label="Password"
+            label="รหัสผ่าน"
             placeholder="••••••••"
             type={showPassword ? "text" : "password"}
             icon={<LockIcon className="text-zinc-500 text-lg" />}
@@ -160,7 +160,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             isLoading={isSubmitting}
             className="w-full mt-2"
           >
-            {isSignUp ? "Sign Up" : "Sign In"}
+            {isSignUp ? "สมัครสมาชิก" : "เข้าสู่ระบบ"}
           </Button>
         </form>
 
@@ -183,7 +183,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             }}
             className="text-xs text-zinc-400 hover:text-brand transition-colors cursor-pointer"
           >
-            {isSignUp ? "Already have an account? Sign In" : "New to ThaiFlix? Sign Up Now"}
+            {isSignUp ? "มีบัญชีอยู่แล้ว? เข้าสู่ระบบ" : "ใหม่กับ ThaiFlix? สมัครสมาชิกเลย"}
           </button>
         </div>
       </div>

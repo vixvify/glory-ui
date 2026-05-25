@@ -2,6 +2,7 @@ import { ApiResponse } from "../interface/response";
 import { MovieRepository } from "@/core/ports/movie.repository";
 import { Movie } from "@/core/domain/movie";
 import httpClient from "@/lib/http";
+import { RatingCheckInput, RatingInput, Rating } from "@/core/domain/rating";
 
 export class MovieRepositoryImpl implements MovieRepository {
     async getAllMovies(): Promise<ApiResponse<Movie[]>> {
@@ -53,11 +54,35 @@ export class MovieRepositoryImpl implements MovieRepository {
         return response
     }
     async getCategories(): Promise<ApiResponse<string[]>> {
-        const response = await httpClient.get<string[]>("/movie/categories");
+        const response = await httpClient.get<string[]>("/movie/categories-data");
         return response
     }
     async getAgeRatings(): Promise<ApiResponse<string[]>> {
-        const response = await httpClient.get<string[]>("/movie/ratings");
+        const response = await httpClient.get<string[]>("/movie/ratings-data");
+        return response
+    }
+    async addRating(data: RatingInput): Promise<ApiResponse<void>> {
+        const response = await httpClient.post<void>("/movie/rating", data);
+        return response
+    }
+    async checkRating(data: RatingCheckInput): Promise<ApiResponse<boolean>> {
+        const response = await httpClient.post<boolean>("/movie/rating/check", data);
+        return response
+    }
+    async deleteRating(data: RatingCheckInput): Promise<ApiResponse<void>> {
+        const response = await httpClient.delete<void>("/movie/rating", { data });
+        return response
+    }
+    async updateRating(data: RatingInput): Promise<ApiResponse<void>> {
+        const response = await httpClient.put<void>("/movie/rating", data);
+        return response
+    }
+    async getRatingByMovie(movieId: string): Promise<ApiResponse<Rating[]>> {
+        const response = await httpClient.get<Rating[]>(`/movie/rating/${movieId}`);
+        return response
+    }
+    async getRatingByUser(userId: string): Promise<ApiResponse<Rating[]>> {
+        const response = await httpClient.get<Rating[]>(`/movie/rating/user/${userId}`);
         return response
     }
 }

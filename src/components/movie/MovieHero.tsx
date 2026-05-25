@@ -7,6 +7,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { Movie } from "@/core/domain/movie";
 import { Button } from "@/components/ui/Button";
+import { categoryTitleMapping } from "@/core/constants/categories";
 
 interface Props {
   movies: Movie[];
@@ -101,10 +102,10 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
       <div className="max-w-4xl relative z-10 space-y-4 md:space-y-6 pt-16 md:pt-20 transition-all duration-500 transform translate-y-0">
         <div className="flex items-center gap-2 animate-fade-in" key={`badge-${currentMovie.id}`}>
           <span className="bg-brand text-white text-[10px] md:text-xs font-black px-1.5 py-0.5 rounded tracking-widest leading-none shadow-md">
-            FILM
+            ภาพยนตร์
           </span>
           <span className="text-zinc-300 text-xs md:text-sm font-semibold tracking-widest uppercase">
-            POPULAR ORIGINAL
+            ยอดนิยม
           </span>
         </div>
 
@@ -119,14 +120,14 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
           className="flex items-center gap-3 text-xs md:text-sm animate-fade-in"
           key={`meta-${currentMovie.id}`}
         >
-          <span className="text-emerald-400 font-bold">{currentMovie.matchRate}% Match</span>
+          <span className="text-emerald-400 font-bold">{currentMovie.matchRate}% ตรงกับคุณ</span>
           <span className="text-zinc-300">{currentMovie.year}</span>
           <span className="px-1.5 py-0.5 text-[10px] md:text-xs font-bold border border-zinc-500 text-zinc-300 rounded leading-none">
             {currentMovie.ageRating}
           </span>
           <span className="text-zinc-300">{currentMovie.duration}</span>
           <span className="text-zinc-300 font-semibold bg-zinc-800/80 px-2 py-0.5 rounded-full text-xs">
-            {currentMovie.category}
+            {categoryTitleMapping[currentMovie.category]}
           </span>
         </div>
 
@@ -144,7 +145,7 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
             className="px-6 md:px-8 py-2.5 md:py-3.5 flex items-center gap-2"
           >
             <PlayArrowIcon className="text-xl md:text-2xl" />
-            Play
+            เล่น
           </Button>
 
           <Button
@@ -153,7 +154,7 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
             className="bg-zinc-600/20 backdrop-blur-md hover:bg-zinc-600/45 active:scale-95 font-bold px-6 md:px-8 py-2.5 md:py-3.5 flex items-center gap-2 border border-zinc-500/25"
           >
             <InfoOutlinedIcon className="text-xl md:text-2xl" />
-            More Info
+            ข้อมูลเพิ่มเติม
           </Button>
         </div>
       </div>
