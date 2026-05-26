@@ -5,84 +5,94 @@ import httpClient from "@/lib/http";
 import { RatingCheckInput, RatingInput, Rating } from "@/core/domain/rating";
 
 export class MovieRepositoryImpl implements MovieRepository {
-    async getAllMovies(): Promise<ApiResponse<Movie[]>> {
-        const response = await httpClient.get<Movie[]>("/movie/all");
-        return response
-    }
-    async getMovieById(id: string): Promise<ApiResponse<Movie>> {
-        const response = await httpClient.get<Movie>(`/movie/${id}`);
-        return response
-    }
-    async searchMovies(query: string): Promise<ApiResponse<Movie[]>> {
-        const response = await httpClient.get<Movie[]>(`/movie/search?q=${query}`);
-        return response
-    }
-    async getMoviesByCategory(category: string): Promise<ApiResponse<Movie[]>> {
-        const response = await httpClient.get<Movie[]>(`/movie/category/${category}`);
-        return response
-    }
-    async createMovie(formData: FormData): Promise<ApiResponse<Movie>> {
-        const response = await httpClient.post<Movie>("/movie", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
-        return response
-    }
-    async updateMovie(id: string, formData: FormData): Promise<ApiResponse<Movie>> {
-        const response = await httpClient.put<Movie>(`/movie/${id}`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
-        return response
-    }
-    async deleteMovie(id: string): Promise<ApiResponse<void>> {
-        const response = await httpClient.delete<void>(`/movie/${id}`);
-        return response
-    }
-    async getFavorites(): Promise<ApiResponse<string[]>> {
-        const response = await httpClient.get<string[]>("/movie/favorites");
-        return response
-    }
-    async addFavorite(movieId: string): Promise<ApiResponse<void>> {
-        const response = await httpClient.post<void>("/movie/favorites", { movieId });
-        return response
-    }
-    async removeFavorite(movieId: string): Promise<ApiResponse<void>> {
-        const response = await httpClient.delete<void>(`/movie/favorites/${movieId}`);
-        return response
-    }
-    async getCategories(): Promise<ApiResponse<string[]>> {
-        const response = await httpClient.get<string[]>("/movie/categories-data");
-        return response
-    }
-    async getAgeRatings(): Promise<ApiResponse<string[]>> {
-        const response = await httpClient.get<string[]>("/movie/ratings-data");
-        return response
-    }
-    async addRating(data: RatingInput): Promise<ApiResponse<void>> {
-        const response = await httpClient.post<void>("/movie/rating", data);
-        return response
-    }
-    async checkRating(data: RatingCheckInput): Promise<ApiResponse<boolean>> {
-        const response = await httpClient.post<boolean>("/movie/rating/check", data);
-        return response
-    }
-    async deleteRating(data: RatingCheckInput): Promise<ApiResponse<void>> {
-        const response = await httpClient.delete<void>("/movie/rating", { data });
-        return response
-    }
-    async updateRating(data: RatingInput): Promise<ApiResponse<void>> {
-        const response = await httpClient.put<void>("/movie/rating", data);
-        return response
-    }
-    async getRatingByMovie(movieId: string): Promise<ApiResponse<Rating[]>> {
-        const response = await httpClient.get<Rating[]>(`/movie/rating/${movieId}`);
-        return response
-    }
-    async getRatingByUser(userId: string): Promise<ApiResponse<Rating[]>> {
-        const response = await httpClient.get<Rating[]>(`/movie/rating/user/${userId}`);
-        return response
-    }
+  async getAllMovies(): Promise<ApiResponse<Movie[]>> {
+    const response = await httpClient.get<Movie[]>("/movie/all");
+    return response;
+  }
+  async getMovieById(id: string): Promise<ApiResponse<Movie>> {
+    const response = await httpClient.get<Movie>(`/movie/${id}`);
+    return response;
+  }
+  async searchMovies(query: string): Promise<ApiResponse<Movie[]>> {
+    const response = await httpClient.get<Movie[]>(`/movie/search?q=${query}`);
+    return response;
+  }
+  async getMoviesByCategory(category: string): Promise<ApiResponse<Movie[]>> {
+    const response = await httpClient.get<Movie[]>(
+      `/movie/category/${category}`,
+    );
+    return response;
+  }
+  async createMovie(formData: FormData): Promise<ApiResponse<Movie>> {
+    const response = await httpClient.post<Movie>("/movie", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response;
+  }
+  async updateMovie(
+    id: string,
+    formData: FormData,
+  ): Promise<ApiResponse<Movie>> {
+    const response = await httpClient.put<Movie>(`/movie/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response;
+  }
+  async deleteMovie(id: string): Promise<ApiResponse<void>> {
+    const response = await httpClient.delete<void>(`/movie/${id}`);
+    return response;
+  }
+  async getFavorites(): Promise<ApiResponse<string[]>> {
+    const response = await httpClient.get<string[]>("/movie/favorites");
+    return response;
+  }
+  async addFavorite(movieId: string): Promise<ApiResponse<void>> {
+    const response = await httpClient.post<void>("/movie/favorites", {
+      movieId,
+    });
+    return response;
+  }
+  async removeFavorite(movieId: string): Promise<ApiResponse<void>> {
+    const response = await httpClient.delete<void>(
+      `/movie/favorites/${movieId}`,
+    );
+    return response;
+  }
+  async getCategories(): Promise<ApiResponse<string[]>> {
+    const response = await httpClient.get<string[]>("/movie/categories-data");
+    return response;
+  }
+  async getAgeRatings(): Promise<ApiResponse<string[]>> {
+    const response = await httpClient.get<string[]>("/movie/ratings-data");
+    return response;
+  }
+  async addRating(data: RatingInput): Promise<ApiResponse<void>> {
+    const response = await httpClient.post<void>("/movie/ratings", data);
+    return response;
+  }
+  async checkRating(data: RatingCheckInput): Promise<ApiResponse<boolean>> {
+    const response = await httpClient.post<boolean>(
+      "/movie/ratings/check",
+      data,
+    );
+    return response;
+  }
+  async deleteRating(data: RatingCheckInput): Promise<ApiResponse<void>> {
+    const response = await httpClient.delete<void>("/movie/ratings", { data });
+    return response;
+  }
+  async updateRating(data: RatingInput): Promise<ApiResponse<void>> {
+    const response = await httpClient.put<void>("/movie/ratings", data);
+    return response;
+  }
+  async getRatingByMovieAndUser(
+    data: RatingCheckInput,
+  ): Promise<ApiResponse<Rating[]>> {
+    const response = await httpClient.post<Rating[]>(`/movie/ratings`, data);
+    return response;
+  }
 }
