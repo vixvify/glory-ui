@@ -7,7 +7,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { Movie } from "@/core/domain/movie";
 import { Button } from "@/components/ui/button";
-import { categoryTitleMapping } from "@/core/constants/categories";
+import { CATEGORY_TITLE_MAPPING } from "@/core/constants/categories";
 
 interface Props {
   movies: Movie[];
@@ -127,7 +127,7 @@ export default function MovieHero({ movies, onPlayClick, onInfoClick }: Props) {
           </span>
           <span className="text-zinc-300">{currentMovie.duration}</span>
           <span className="text-zinc-300 font-semibold bg-zinc-800/80 px-2 py-0.5 rounded-full text-xs">
-            {categoryTitleMapping[currentMovie.category]}
+            {CATEGORY_TITLE_MAPPING[currentMovie.category]}
           </span>
         </div>
 

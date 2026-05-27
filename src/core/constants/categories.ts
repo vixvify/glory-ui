@@ -1,4 +1,4 @@
-export const categories = [
+export const CATEGORIES = [
   "Action",
   "Sci-Fi",
   "Drama",
@@ -18,7 +18,7 @@ export const categories = [
   "Western",
 ];
 
-export const categoryTitleMapping: Record<string, string> = {
+export const CATEGORY_TITLE_MAPPING: Record<string, string> = {
   "Action": "แอคชั่น",
   "Sci-Fi": "ไซไฟ / วิทยาศาสตร์",
   "Horror": "สยองขวัญ",

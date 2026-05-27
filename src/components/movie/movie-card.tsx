@@ -7,7 +7,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import StarIcon from "@mui/icons-material/Star";
 import { Movie } from "../../core/domain/movie";
 import { useAppStore } from "@/store/use-store";
-import { categoryTitleMapping } from "@/core/constants/categories";
+import { CATEGORY_TITLE_MAPPING } from "@/core/constants/categories";
 
 interface Props {
   movie: Movie;
@@ -48,7 +48,7 @@ export default function MovieCard({
         </div>
 
         <span className="absolute top-2 left-2 px-2 py-0.5 text-[9px] font-bold tracking-wider bg-black/60 backdrop-blur-md text-zinc-300 border border-zinc-700/50 rounded uppercase">
-          {categoryTitleMapping[movie.category]}
+          {CATEGORY_TITLE_MAPPING[movie.category]}
         </span>
       </div>
 

@@ -14,7 +14,7 @@ import { useAppStore } from "@/store/use-store";
 import Loading from "./loading";
 import { Toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
-import { categoryTitleMapping } from "@/core/constants/categories";
+import { CATEGORY_TITLE_MAPPING } from "@/core/constants/categories";
 import {
   useMoviesQuery,
   useCategoriesQuery,
@@ -202,7 +202,7 @@ export default function HomePage() {
               const categoryMovies = allMovies.filter((m) => m.category === category);
               if (categoryMovies.length === 0) return null;
 
-              const displayTitle = categoryTitleMapping[category] || category;
+              const displayTitle = CATEGORY_TITLE_MAPPING[category] || category;
 
               return (
                 <MovieRow
