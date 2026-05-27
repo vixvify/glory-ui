@@ -43,7 +43,7 @@ export default function TrailerModal({
   const embedUrl = getYouTubeEmbedUrl(youtubeUrl);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10 bg-black/85 backdrop-blur-md animate-fade-in transition-all duration-300">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-10 bg-black/85 backdrop-blur-md animate-fade-in transition-all duration-300">
       <div 
         className="absolute inset-0 cursor-pointer" 
         onClick={onClose} 

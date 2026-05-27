@@ -93,7 +93,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
       <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
 
       <div className="relative w-full max-w-md bg-card rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 animate-scale-up z-10 p-8">

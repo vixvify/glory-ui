@@ -89,7 +89,7 @@ export default function MovieDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4 md:p-8 bg-black/85 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-8 bg-black/85 backdrop-blur-md animate-fade-in">
       <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
 
       <div className="relative w-full max-w-4xl bg-card rounded-2xl overflow-y-auto max-h-[90vh] shadow-2xl border border-zinc-800/80 animate-scale-up z-10 no-scrollbar">

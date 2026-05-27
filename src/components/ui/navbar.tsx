@@ -148,7 +148,13 @@ export default function Navbar({
           </div>
 
           <button
-            onClick={() => handleNavClick(null, true)}
+            onClick={() => {
+              if (!currentUser) {
+                onSignInClick();
+              } else {
+                handleNavClick(null, true);
+              }
+            }}
             className={`cursor-pointer transition-colors duration-300 hover:text-white ${pathname === "/" && showMyListOnly ? "text-white font-semibold" : ""
               }`}
           >

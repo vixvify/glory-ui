@@ -49,6 +49,7 @@ export default function HomePage() {
   useEffect(() => {
     if (!currentUser) {
       setFavorites([]);
+      setShowMyListOnly(false);
     } else if (serverFavorites) {
       setFavorites(serverFavorites);
     }
@@ -228,7 +229,7 @@ export default function HomePage() {
               const categoryMovies = allMovies.filter((m) => m.category === category);
               if (categoryMovies.length === 0) return null;
 
-              const displayTitle = CATEGORY_TITLE_MAPPING[category] || category;
+              const displayTitle = CATEGORY_TITLE_MAPPING[category]
 
               return (
                 <MovieRow
@@ -263,10 +264,10 @@ export default function HomePage() {
                 ? `ผลลัพธ์การค้นหา "${searchQuery}"`
                 : showMyListOnly
                   ? "รายการของฉัน"
-                  : `${selectedCategory} หนัง`}
+                  : `${CATEGORY_TITLE_MAPPING[selectedCategory || ""]}`}
             </h2>
             <span className="text-sm text-zinc-400">
-              {filteredMovies.length} เรื่อง ที่พบ
+              {filteredMovies.length} เรื่อง
             </span>
           </div>
 
