@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { User } from "@/core/domain/user";
+import { authService } from "@/infra/container";
 
 interface AppState {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
+  checkAuth: () => Promise<void>;
 
   toast: {
     message: string;
@@ -27,6 +29,16 @@ export const useAppStore = create<AppState>()(
       toast: null,
 
       setCurrentUser: (user) => set({ currentUser: user }),
+
+      checkAuth: async () => {
+        try {
+          const user = await authService.getCurrentUser();
+          set({ currentUser: user });
+        } catch (error) {
+          console.error("Auth check failed, removing stale user session:", error);
+          set({ currentUser: null });
+        }
+      },
 
       showToast: (message, type = "success") => {
         set({

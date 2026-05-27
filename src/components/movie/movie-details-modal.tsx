@@ -11,6 +11,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import { Movie } from "@/core/domain/movie";
 import { User } from "@/core/domain/user";
+import { Rating } from "@/core/domain/rating";
 import { Button } from "@/components/ui/button";
 
 interface MovieDetailsModalProps {
@@ -21,6 +22,9 @@ interface MovieDetailsModalProps {
   onToggleFavorite: (movieId: string) => void;
   onPlayTrailer: () => void;
   onAddRating: (movieId: string, user: User, score: number) => void;
+  onUpdateRating?: (movieId: string, user: User, score: number) => void;
+  onDeleteRating?: (movieId: string, user: User) => void;
+  userRating: Rating | null;
   currentUser: User | null;
   onSignInClick: () => void;
 }
@@ -33,6 +37,9 @@ export default function MovieDetailsModal({
   onToggleFavorite,
   onPlayTrailer,
   onAddRating,
+  onUpdateRating,
+  onDeleteRating,
+  userRating,
   currentUser,
   onSignInClick,
 }: MovieDetailsModalProps) {
@@ -42,15 +49,20 @@ export default function MovieDetailsModal({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      setIsSubmitted(false);
-      setReviewScore(5);
+      if (userRating) {
+        setIsSubmitted(true);
+        setReviewScore(userRating.stars);
+      } else {
+        setIsSubmitted(false);
+        setReviewScore(5);
+      }
     } else {
       document.body.style.overflow = "unset";
     }
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isOpen, userRating]);
 
   if (!isOpen) return null;
 
@@ -61,8 +73,19 @@ export default function MovieDetailsModal({
     e.preventDefault();
     if (!currentUser) return;
 
-    onAddRating(movie.id, currentUser, reviewScore);
+    if (userRating) {
+      onUpdateRating?.(movie.id, currentUser, reviewScore);
+    } else {
+      onAddRating(movie.id, currentUser, reviewScore);
+    }
     setIsSubmitted(true);
+  };
+
+  const handleDeleteReview = () => {
+    if (!currentUser) return;
+    onDeleteRating?.(movie.id, currentUser);
+    setIsSubmitted(false);
+    setReviewScore(5);
   };
 
   return (
@@ -156,8 +179,13 @@ export default function MovieDetailsModal({
                       <AccountCircleIcon className="text-zinc-650 text-3xl mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="text-sm font-semibold text-zinc-200 truncate">
+                          <span className="text-sm font-semibold text-zinc-200 truncate flex items-center gap-1.5">
                             {rating.user.name}
+                            {currentUser && rating.userId === currentUser.id && (
+                              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                คุณ
+                              </span>
+                            )}
                           </span>
                           <div className="flex items-center gap-0.5 text-amber-500 text-xs">
                             {Array.from({ length: 5 }).map((_, i) => (
@@ -172,7 +200,7 @@ export default function MovieDetailsModal({
                           </div>
                         </div>
                         <p className="text-xs text-zinc-400 font-light italic">
-                          "Gave it a score of {rating.stars}"
+                          "ให้คะแนนเรื่องนี้ {rating.stars} ดาว"
                         </p>
                       </div>
                     </div>
@@ -215,19 +243,41 @@ export default function MovieDetailsModal({
               </h5>
 
               {isSubmitted ? (
-                <div className="text-center py-4 space-y-2 animate-fade-in">
-                  <span className="text-emerald-400 font-semibold text-sm">
-                    ขอบคุณ!
+                <div className="text-center py-4 space-y-3 animate-fade-in">
+                  <span className="text-emerald-400 font-semibold text-sm block">
+                    คุณบันทึกคะแนนแล้ว!
                   </span>
+                  <div className="flex justify-center text-amber-555 my-1.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i}>
+                        {i < reviewScore ? (
+                          <StarIcon className="text-xl animate-scale-up text-amber-500" />
+                        ) : (
+                          <StarBorderIcon className="text-xl text-zinc-700" />
+                        )}
+                      </span>
+                    ))}
+                  </div>
                   <p className="text-xs text-zinc-400 font-light">
-                    บันทึกคะแนนของคุณเรียบร้อยแล้ว.
+                    คุณให้คะแนน {reviewScore} จาก 5 ดาว
                   </p>
-                  <button
-                    onClick={() => setIsSubmitted(false)}
-                    className="text-xs text-brand font-medium hover:underline cursor-pointer"
-                  >
-                    อยากให้คะแนนอีกครั้ง?
-                  </button>
+                  <div className="flex items-center justify-center gap-3 mt-2 pt-1 border-t border-zinc-800/50">
+                    <button
+                      type="button"
+                      onClick={() => setIsSubmitted(false)}
+                      className="text-xs text-brand font-medium hover:underline cursor-pointer transition-all hover:scale-105"
+                    >
+                      แก้ไขคะแนน
+                    </button>
+                    <span className="text-zinc-700 text-xs">•</span>
+                    <button
+                      type="button"
+                      onClick={handleDeleteReview}
+                      className="text-xs text-rose-500 font-medium hover:underline cursor-pointer transition-all hover:scale-105"
+                    >
+                      ลบคะแนน
+                    </button>
+                  </div>
                 </div>
               ) : currentUser ? (
                 <form onSubmit={handleSubmitReview} className="space-y-4">

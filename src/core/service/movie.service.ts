@@ -5,7 +5,7 @@ import { createMovieSchema, updateMovieSchema } from "../schema/movie";
 import { Rating, RatingCheckInput, RatingInput } from "../domain/rating";
 
 export class MovieService {
-  constructor(private readonly movieRepository: MovieRepository) {}
+  constructor(private readonly movieRepository: MovieRepository) { }
   async getAllMovies(): Promise<Movie[]> {
     try {
       const response = await this.movieRepository.getAllMovies();

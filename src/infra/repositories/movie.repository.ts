@@ -75,10 +75,9 @@ export class MovieRepositoryImpl implements MovieRepository {
     return response;
   }
   async checkRating(data: RatingCheckInput): Promise<ApiResponse<boolean>> {
-    const response = await httpClient.post<boolean>(
-      "/movie/ratings/check",
-      data,
-    );
+    const response = await httpClient.get<boolean>("/movie/ratings/check", {
+      params: data,
+    });
     return response;
   }
   async deleteRating(data: RatingCheckInput): Promise<ApiResponse<void>> {
@@ -92,7 +91,9 @@ export class MovieRepositoryImpl implements MovieRepository {
   async getRatingByMovieAndUser(
     data: RatingCheckInput,
   ): Promise<ApiResponse<Rating[]>> {
-    const response = await httpClient.post<Rating[]>(`/movie/ratings`, data);
+    const response = await httpClient.get<Rating[]>(`/movie/ratings`, {
+      params: data,
+    });
     return response;
   }
 }

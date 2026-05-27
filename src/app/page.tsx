@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/ui/navbar";
 import MovieHero from "@/components/movie/movie-hero";
 import MovieGrid from "@/components/movie/movie-grid";
@@ -19,6 +19,7 @@ import {
   useMoviesQuery,
   useCategoriesQuery,
   useFavoritesQuery,
+  useMovieUserRatingQuery,
   useToggleFavoriteMutation,
   useAddRatingMutation,
   useUpdateRatingMutation,
@@ -41,7 +42,24 @@ export default function HomePage() {
 
   const { data: allMovies = [], isLoading: isMoviesLoading } = useMoviesQuery();
   const { data: categories = [] } = useCategoriesQuery();
-  const { data: favorites = [] } = useFavoritesQuery(!!currentUser);
+  const { data: serverFavorites } = useFavoritesQuery(!!currentUser);
+
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setFavorites([]);
+    } else if (serverFavorites) {
+      setFavorites(serverFavorites);
+    }
+  }, [serverFavorites, currentUser]);
+
+  const { data: userRatings = [] } = useMovieUserRatingQuery(
+    selectedMovie?.id || "",
+    currentUser?.id || "",
+    !!selectedMovie && !!currentUser
+  );
+  const currentUserRating = userRatings.length > 0 ? userRatings[0] : null;
 
   const toggleFavoriteMutation = useToggleFavoriteMutation();
   const addRatingMutation = useAddRatingMutation();
@@ -63,6 +81,13 @@ export default function HomePage() {
       return;
     }
     const isCurrentlyFavorite = favorites.includes(movieId);
+    const previousFavorites = [...favorites];
+
+    const updatedFavorites = isCurrentlyFavorite
+      ? favorites.filter((id) => id !== movieId)
+      : [...favorites, movieId];
+
+    setFavorites(updatedFavorites);
 
     toggleFavoriteMutation.mutate(
       { movieId, isFavorite: isCurrentlyFavorite },
@@ -75,6 +100,7 @@ export default function HomePage() {
           }
         },
         onError: () => {
+          setFavorites(previousFavorites);
           showToast("เกิดข้อผิดพลาดในการปรับปรุงรายการโปรด", "error");
         },
       }
@@ -281,6 +307,9 @@ export default function HomePage() {
           onToggleFavorite={handleToggleFavorite}
           onPlayTrailer={() => handlePlayTrailer(activeMovieForModal)}
           onAddRating={handleAddRating}
+          onUpdateRating={handleUpdateRating}
+          onDeleteRating={handleDeleteRating}
+          userRating={currentUserRating}
           currentUser={currentUser}
           onSignInClick={() => setIsAuthOpen(true)}
         />
