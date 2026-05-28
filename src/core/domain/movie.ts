@@ -48,7 +48,7 @@ export interface CreateMovie {
   writer?: string;
   cast?: string;
   btsVideo?: string;
-  btsPhotos?: string;
+  btsPhotos?: FileList | File[] | string | null;
 }
 
 export interface UpdateMovie {
@@ -67,7 +67,7 @@ export interface UpdateMovie {
   writer?: string | null;
   cast?: string | null;
   btsVideo?: string | null;
-  btsPhotos?: string | null;
+  btsPhotos?: FileList | File[] | string | null;
 }
 
 

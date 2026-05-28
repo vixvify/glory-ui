@@ -49,7 +49,7 @@ type MovieForm = {
   writer?: string;
   cast?: string;
   btsVideo?: string;
-  btsPhotos?: string;
+  btsPhotos?: FileList | File[] | string | null;
 };
 
 type Sortby = "title" | "year" | "views";
@@ -65,6 +65,24 @@ export default function AdminPage() {
   const [editingMovieId, setEditingMovieId] = useState<string | null>(null);
   const [deleteMovieId, setDeleteMovieId] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [existingBtsPhotos, setExistingBtsPhotos] = useState<string[]>([]);
+  const [newBtsPhotosFiles, setNewBtsPhotosFiles] = useState<File[]>([]);
+
+  const handleBtsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setNewBtsPhotosFiles((prev) => [...prev, ...fileArray]);
+    }
+  };
+
+  const handleRemoveExistingBts = (index: number) => {
+    setExistingBtsPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveNewBts = (index: number) => {
+    setNewBtsPhotosFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const { data: movies = [], isLoading: isMoviesLoading } = useMoviesQuery();
   const { data: availableCategories = [] } = useCategoriesQuery();
@@ -86,6 +104,8 @@ export default function AdminPage() {
   const handleOpenAdd = () => {
     setEditingMovie(null);
     setSelectedFileName(null);
+    setExistingBtsPhotos([]);
+    setNewBtsPhotosFiles([]);
     reset({
       title: "",
       description: "",
@@ -111,6 +131,8 @@ export default function AdminPage() {
     setEditingMovie(movie);
     setEditingMovieId(movie.id);
     setSelectedFileName(null);
+    setExistingBtsPhotos(movie.crew?.btsPhotos || []);
+    setNewBtsPhotosFiles([]);
     reset({
       title: movie.title,
       description: movie.description,
@@ -140,6 +162,9 @@ export default function AdminPage() {
         year: Number(data.year),
         matchRate: Number(data.matchRate),
         duration: Number(data.duration),
+        btsPhotos: editingMovie
+          ? [...existingBtsPhotos, ...newBtsPhotosFiles]
+          : newBtsPhotosFiles,
       });
 
       if (editingMovie) {
@@ -160,7 +185,7 @@ export default function AdminPage() {
           writer: validated.writer || null,
           cast: validated.cast || null,
           btsVideo: validated.btsVideo || null,
-          btsPhotos: validated.btsPhotos || null,
+          btsPhotos: (validated.btsPhotos as UpdateMovie["btsPhotos"]) || null,
         };
         await updateMovieMutation.mutateAsync({
           id: editingMovieId!,
@@ -184,7 +209,7 @@ export default function AdminPage() {
           writer: validated.writer || undefined,
           cast: validated.cast || undefined,
           btsVideo: validated.btsVideo || undefined,
-          btsPhotos: validated.btsPhotos || undefined,
+          btsPhotos: (validated.btsPhotos as CreateMovie["btsPhotos"]) || undefined,
         };
         await createMovieMutation.mutateAsync(newMoviePayload);
         showToast("เพิ่มภาพยนตร์เรียบร้อยแล้ว", "success");
@@ -670,12 +695,75 @@ export default function AdminPage() {
                     {...register("btsVideo")}
                   />
 
-                  <Input
-                    label="BTS Photos (ลิงก์รูปภาพเบื้องหลัง - แยกด้วยจุลภาค ,)"
-                    placeholder="e.g. https://domain.com/photo1.jpg, https://domain.com/photo2.jpg"
-                    error={errors.btsPhotos?.message}
-                    {...register("btsPhotos")}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-zinc-300">
+                      BTS Photos (รูปภาพเบื้องหลัง)
+                    </label>
+                    
+                    {/* Previews grid */}
+                    {(existingBtsPhotos.length > 0 || newBtsPhotosFiles.length > 0) && (
+                      <div className="grid grid-cols-4 gap-2 mb-3">
+                        {/* Existing uploaded URLs */}
+                        {existingBtsPhotos.map((url, idx) => (
+                          <div key={`existing-${idx}`} className="relative group aspect-square rounded-xl overflow-hidden border border-zinc-800 bg-black/40 shadow-sm">
+                            <img src={url} alt="BTS Preview" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveExistingBts(idx)}
+                                className="p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer"
+                              >
+                                <CloseIcon className="text-xs" />
+                              </button>
+                            </div>
+                            <span className="absolute bottom-1 left-1 px-1 py-0.5 bg-black/75 rounded text-[8px] text-zinc-400 font-bold uppercase tracking-wider scale-90 origin-bottom-left">Saved</span>
+                          </div>
+                        ))}
+                        
+                        {/* Newly added local files */}
+                        {newBtsPhotosFiles.map((file, idx) => {
+                          const objectUrl = URL.createObjectURL(file);
+                          return (
+                            <div key={`new-${idx}`} className="relative group aspect-square rounded-xl overflow-hidden border border-brand/40 bg-black/40 shadow-sm">
+                              <img src={objectUrl} alt="BTS Preview" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveNewBts(idx)}
+                                  className="p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer"
+                                >
+                                  <CloseIcon className="text-xs" />
+                                </button>
+                              </div>
+                              <span className="absolute bottom-1 left-1 px-1 py-0.5 bg-brand/80 rounded text-[8px] text-white font-bold uppercase tracking-wider scale-90 origin-bottom-left">New</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* File input drag and drop trigger */}
+                    <div className="relative group/file">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleBtsFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      <div className="w-full bg-black/40 border border-zinc-800 border-dashed rounded-xl px-4 py-4 text-sm text-zinc-405 flex flex-col items-center justify-center gap-1.5 transition-colors group-hover/file:border-brand/60">
+                        <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800/80 flex items-center justify-center text-zinc-400 group-hover/file:bg-brand/10 group-hover/file:border-brand/30 group-hover/file:text-brand transition-colors">
+                          <AddIcon className="text-sm" />
+                        </div>
+                        <span className="text-xs text-zinc-400 font-semibold group-hover/file:text-zinc-200 transition-colors">
+                          Upload behind-the-scenes files...
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          Select multiple files to upload BTS photos
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">

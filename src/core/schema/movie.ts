@@ -27,7 +27,7 @@ export const movieSchema = z.object({
   writer: z.string().optional().nullable(),
   cast: z.string().optional().nullable(),
   btsVideo: z.string().optional().nullable(),
-  btsPhotos: z.string().optional().nullable(),
+  btsPhotos: z.unknown().optional().nullable(),
 });
 
 export const updateMovieSchema = movieSchema.omit({

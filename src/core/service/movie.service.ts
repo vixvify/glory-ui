@@ -76,7 +76,27 @@ export class MovieService {
       if (validated.writer) formData.append("writer", validated.writer);
       if (validated.cast) formData.append("cast", validated.cast);
       if (validated.btsVideo) formData.append("btsVideo", validated.btsVideo);
-      if (validated.btsPhotos) formData.append("btsPhotos", validated.btsPhotos);
+      const btsPhotos = validated.btsPhotos;
+      if (btsPhotos) {
+        if (btsPhotos instanceof File) {
+          formData.append("btsPhotos", btsPhotos);
+        } else if (btsPhotos instanceof FileList) {
+          for (let i = 0; i < btsPhotos.length; i++) {
+            const file = btsPhotos.item(i);
+            if (file) formData.append("btsPhotos", file);
+          }
+        } else if (Array.isArray(btsPhotos)) {
+          for (const item of btsPhotos) {
+            if (item instanceof File) {
+              formData.append("btsPhotos", item);
+            } else if (typeof item === "string") {
+              formData.append("btsPhotos", item);
+            }
+          }
+        } else if (typeof btsPhotos === "string") {
+          formData.append("btsPhotos", btsPhotos);
+        }
+      }
 
       if (validated.thumbnail instanceof File) {
         formData.append("thumbnail", validated.thumbnail);
@@ -120,7 +140,27 @@ export class MovieService {
       if (validated.writer) formData.append("writer", validated.writer);
       if (validated.cast) formData.append("cast", validated.cast);
       if (validated.btsVideo) formData.append("btsVideo", validated.btsVideo);
-      if (validated.btsPhotos) formData.append("btsPhotos", validated.btsPhotos);
+      const btsPhotos = validated.btsPhotos;
+      if (btsPhotos) {
+        if (btsPhotos instanceof File) {
+          formData.append("btsPhotos", btsPhotos);
+        } else if (btsPhotos instanceof FileList) {
+          for (let i = 0; i < btsPhotos.length; i++) {
+            const file = btsPhotos.item(i);
+            if (file) formData.append("btsPhotos", file);
+          }
+        } else if (Array.isArray(btsPhotos)) {
+          for (const item of btsPhotos) {
+            if (item instanceof File) {
+              formData.append("btsPhotos", item);
+            } else if (typeof item === "string") {
+              formData.append("btsPhotos", item);
+            }
+          }
+        } else if (typeof btsPhotos === "string") {
+          formData.append("btsPhotos", btsPhotos);
+        }
+      }
 
       if (validated.thumbnail instanceof File) {
         formData.append("thumbnail", validated.thumbnail);
