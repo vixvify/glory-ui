@@ -68,18 +68,7 @@ export class MovieRepositoryImpl implements MovieRepository {
     );
     return response;
   }
-  async getCategories(): Promise<ApiResponse<string[]>> {
-    const response = await httpClient.get<string[]>("/movie/categories-data");
-    return response;
-  }
-  async getUniversities(): Promise<ApiResponse<string[]>> {
-    const response = await httpClient.get<string[]>("/movie/universities-data");
-    return response;
-  }
-  async getAgeRatings(): Promise<ApiResponse<string[]>> {
-    const response = await httpClient.get<string[]>("/movie/ratings-data");
-    return response;
-  }
+
   async addRating(data: RatingInput): Promise<ApiResponse<void>> {
     const response = await httpClient.post<void>("/movie/ratings", data);
     return response;

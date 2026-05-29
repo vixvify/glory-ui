@@ -18,15 +18,14 @@ import { Button } from "@/components/ui/button";
 import { CATEGORY_TITLE_MAPPING } from "@/core/constants/categories";
 import {
   useMoviesQuery,
-  useCategoriesQuery,
   useFavoritesQuery,
   useMovieUserRatingQuery,
   useToggleFavoriteMutation,
   useAddRatingMutation,
   useUpdateRatingMutation,
   useDeleteRatingMutation,
-  useUniversitiesQuery
 } from "@/hooks/use-movies";
+import { useCategoriesQuery, useUniversitiesQuery } from "@/hooks/use-master-data";
 import { useLogoutMutation } from "@/hooks/use-auth";
 
 export default function HomePage() {

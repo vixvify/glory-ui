@@ -1,13 +1,26 @@
 import { Rating } from "./rating";
 
+export interface CrewMember {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface MovieCrew {
   id: string;
   movieId: string;
-  director?: string | null;
-  producer?: string | null;
-  writer?: string | null;
-  cast: string[];
-  btsVideo?: string | null;
+  crewMemberId: string;
+  role: string;
+  crewMember?: CrewMember;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MovieBts {
+  id: string;
+  movieId: string;
+  btsVideo: string[];
   btsPhotos: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -27,7 +40,8 @@ export interface Movie {
   ageRating: string;
   duration: number;
   university?: string | null;
-  crew?: MovieCrew | null;
+  crew: MovieCrew[];
+  bts?: MovieBts | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,12 +57,12 @@ export interface CreateMovie {
   ageRating: string;
   duration: number;
   university?: string;
-  director?: string;
-  producer?: string;
-  writer?: string;
-  cast?: string;
-  btsVideo?: string;
-  btsPhotos?: FileList | File[] | string | null;
+  director?: string | string[];
+  producer?: string | string[];
+  writer?: string | string[];
+  cast?: string | string[];
+  btsVideo?: string | string[];
+  btsPhotos?: FileList | File[] | string | string[] | null;
 }
 
 export interface UpdateMovie {
@@ -62,12 +76,10 @@ export interface UpdateMovie {
   ageRating: string;
   duration: number;
   university?: string | null;
-  director?: string | null;
-  producer?: string | null;
-  writer?: string | null;
-  cast?: string | null;
-  btsVideo?: string | null;
-  btsPhotos?: FileList | File[] | string | null;
+  director?: string | string[] | null;
+  producer?: string | string[] | null;
+  writer?: string | string[] | null;
+  cast?: string | string[] | null;
+  btsVideo?: string | string[] | null;
+  btsPhotos?: FileList | File[] | string | string[] | null;
 }
-
-

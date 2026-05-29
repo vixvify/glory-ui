@@ -4,6 +4,13 @@ import { parseSchema } from "@/lib/validation";
 import { createMovieSchema, updateMovieSchema } from "../schema/movie";
 import { Rating, RatingCheckInput, RatingInput } from "../domain/rating";
 
+const parseStringOrArray = (val: any): string[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") return val.split(",").map((s: string) => s.trim()).filter(Boolean);
+  return [];
+};
+
 export class MovieService {
   constructor(private readonly movieRepository: MovieRepository) { }
   async getAllMovies(): Promise<Movie[]> {
@@ -71,11 +78,21 @@ export class MovieService {
       formData.append("duration", String(validated.duration));
 
       if (validated.university) formData.append("university", validated.university);
-      if (validated.director) formData.append("director", validated.director);
-      if (validated.producer) formData.append("producer", validated.producer);
-      if (validated.writer) formData.append("writer", validated.writer);
-      if (validated.cast) formData.append("cast", validated.cast);
-      if (validated.btsVideo) formData.append("btsVideo", validated.btsVideo);
+      
+      const directors = parseStringOrArray(validated.director);
+      directors.forEach(d => formData.append("director", d));
+
+      const producers = parseStringOrArray(validated.producer);
+      producers.forEach(p => formData.append("producer", p));
+
+      const writers = parseStringOrArray(validated.writer);
+      writers.forEach(w => formData.append("writer", w));
+
+      const castMembers = parseStringOrArray(validated.cast);
+      castMembers.forEach(c => formData.append("cast", c));
+
+      const btsVideos = parseStringOrArray(validated.btsVideo);
+      btsVideos.forEach(v => formData.append("btsVideo", v));
       const btsPhotos = validated.btsPhotos;
       if (btsPhotos) {
         if (btsPhotos instanceof File) {
@@ -135,11 +152,21 @@ export class MovieService {
       formData.append("duration", String(validated.duration));
 
       if (validated.university) formData.append("university", validated.university);
-      if (validated.director) formData.append("director", validated.director);
-      if (validated.producer) formData.append("producer", validated.producer);
-      if (validated.writer) formData.append("writer", validated.writer);
-      if (validated.cast) formData.append("cast", validated.cast);
-      if (validated.btsVideo) formData.append("btsVideo", validated.btsVideo);
+      
+      const directors = parseStringOrArray(validated.director);
+      directors.forEach(d => formData.append("director", d));
+
+      const producers = parseStringOrArray(validated.producer);
+      producers.forEach(p => formData.append("producer", p));
+
+      const writers = parseStringOrArray(validated.writer);
+      writers.forEach(w => formData.append("writer", w));
+
+      const castMembers = parseStringOrArray(validated.cast);
+      castMembers.forEach(c => formData.append("cast", c));
+
+      const btsVideos = parseStringOrArray(validated.btsVideo);
+      btsVideos.forEach(v => formData.append("btsVideo", v));
       const btsPhotos = validated.btsPhotos;
       if (btsPhotos) {
         if (btsPhotos instanceof File) {
@@ -234,42 +261,7 @@ export class MovieService {
       throw error;
     }
   }
-  async getCategories(): Promise<string[]> {
-    try {
-      const response = await this.movieRepository.getCategories();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data;
-    } catch (error) {
-      console.error("Error in getCategories:", error);
-      throw error;
-    }
-  }
-  async getAgeRatings(): Promise<string[]> {
-    try {
-      const response = await this.movieRepository.getAgeRatings();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data;
-    } catch (error) {
-      console.error("Error in getAgeRatings:", error);
-      throw error;
-    }
-  }
-  async getUniversities(): Promise<string[]> {
-    try {
-      const response = await this.movieRepository.getUniversities();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      return response.data;
-    } catch (error) {
-      console.error("Error in getUniversities:", error);
-      throw error;
-    }
-  }
+
   async addRating(data: RatingInput): Promise<void> {
     try {
       const response = await this.movieRepository.addRating(data);

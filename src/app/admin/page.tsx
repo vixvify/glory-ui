@@ -25,12 +25,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   useMoviesQuery,
-  useCategoriesQuery,
-  useAgeRatingsQuery,
   useCreateMovieMutation,
   useUpdateMovieMutation,
   useDeleteMovieMutation,
 } from "@/hooks/use-movies";
+import { useCategoriesQuery, useAgeRatingsQuery } from "@/hooks/use-master-data";
 import { useLogoutMutation } from "@/hooks/use-auth";
 
 type MovieForm = {
@@ -131,7 +130,7 @@ export default function AdminPage() {
     setEditingMovie(movie);
     setEditingMovieId(movie.id);
     setSelectedFileName(null);
-    setExistingBtsPhotos(movie.crew?.btsPhotos || []);
+    setExistingBtsPhotos(movie.bts?.btsPhotos || []);
     setNewBtsPhotosFiles([]);
     reset({
       title: movie.title,
@@ -144,12 +143,12 @@ export default function AdminPage() {
       ageRating: movie.ageRating,
       duration: movie.duration,
       university: movie.university || "",
-      director: movie.crew?.director || "",
-      producer: movie.crew?.producer || "",
-      writer: movie.crew?.writer || "",
-      cast: movie.crew?.cast ? movie.crew.cast.join(", ") : "",
-      btsVideo: movie.crew?.btsVideo || "",
-      btsPhotos: movie.crew?.btsPhotos ? movie.crew.btsPhotos.join(", ") : "",
+      director: movie.crew?.filter(c => c.role.toLowerCase() === "director").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
+      producer: movie.crew?.filter(c => c.role.toLowerCase() === "producer").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
+      writer: movie.crew?.filter(c => c.role.toLowerCase() === "writer").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
+      cast: movie.crew?.filter(c => c.role.toLowerCase() === "cast").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
+      btsVideo: movie.bts?.btsVideo ? movie.bts.btsVideo.join(", ") : "",
+      btsPhotos: movie.bts?.btsPhotos ? movie.bts.btsPhotos.join(", ") : "",
     });
     setIsFormOpen(true);
   };
@@ -741,7 +740,6 @@ export default function AdminPage() {
                       </div>
                     )}
 
-                    {/* File input drag and drop trigger */}
                     <div className="relative group/file">
                       <input
                         type="file"

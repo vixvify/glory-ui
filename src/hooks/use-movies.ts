@@ -10,19 +10,9 @@ export function useMoviesQuery() {
   });
 }
 
-export function useCategoriesQuery() {
-  return useQuery<string[], Error>({
-    queryKey: ["categories"],
-    queryFn: () => movieService.getCategories(),
-  });
-}
 
-export function useUniversitiesQuery() {
-  return useQuery<string[], Error>({
-    queryKey: ["universities"],
-    queryFn: () => movieService.getUniversities(),
-  });
-}
+
+
 
 export function useFavoritesQuery(enabled = true) {
   return useQuery<Movie[], Error>({
@@ -40,12 +30,7 @@ export function useMovieUserRatingQuery(movieId: string, userId: string, enabled
   });
 }
 
-export function useAgeRatingsQuery() {
-  return useQuery<string[], Error>({
-    queryKey: ["ageRatings"],
-    queryFn: () => movieService.getAgeRatings(),
-  });
-}
+
 
 export function useToggleFavoriteMutation() {
   const queryClient = useQueryClient();
