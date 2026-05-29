@@ -4,15 +4,12 @@ import { RegisterUser, LoginUser, User } from "@/core/domain/user";
 import { useAppStore } from "@/store/use-store";
 
 export function useRegisterMutation() {
-  const { setCurrentUser, showToast } = useAppStore();
-  const queryClient = useQueryClient();
+  const { showToast } = useAppStore();
 
   return useMutation<User, Error, RegisterUser>({
     mutationFn: (data) => authService.register(data),
-    onSuccess: (user) => {
-      setCurrentUser(user);
-      showToast("ลงทะเบียนสำเร็จ! ยินดีต้อนรับสู่ ThaiFlix.", "success");
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+    onSuccess: () => {
+      showToast("ลงทะเบียนสำเร็จแล้ว! กรุณาเข้าสู่ระบบเพื่อเข้าใช้งาน.", "success");
     },
   });
 }

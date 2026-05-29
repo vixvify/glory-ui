@@ -8,6 +8,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import CloseIcon from "@mui/icons-material/Close";
 import { Button } from "@/components/ui/button";
 import { User } from "@/core/domain/user";
+import { Category } from "@/core/domain/movie";
 
 interface NavbarProps {
   searchQuery: string;
@@ -19,7 +20,7 @@ interface NavbarProps {
   currentUser: User | null;
   onSignOut: () => void;
   onSignInClick: () => void;
-  categories: string[];
+  categories: Category[];
 }
 
 export default function Navbar({
@@ -131,15 +132,15 @@ export default function Navbar({
                   </button>
                   {categories.map((cat) => (
                     <button
-                      key={cat}
+                      key={cat.id}
                       onClick={() => {
-                        handleNavClick(cat, false);
+                        handleNavClick(cat.name, false);
                         setShowMoviesMenu(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${selectedCategory === cat ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
+                      className={`w-full text-left px-3 py-2 text-xs rounded-lg cursor-pointer transition-colors ${selectedCategory === cat.name ? "bg-zinc-800/60 text-brand font-bold" : "text-zinc-300 hover:bg-zinc-800/40 hover:text-white"
                         }`}
                     >
-                      {cat}
+                      {cat.name}
                     </button>
                   ))}
                 </div>

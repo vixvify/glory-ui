@@ -1,9 +1,10 @@
+import { Category, University, AgeRating } from "../domain/movie";
 import { MasterDataRepository } from "../ports/master-data.repository";
 
 export class MasterDataService {
   constructor(private readonly masterDataRepository: MasterDataRepository) {}
 
-  async getCategories(): Promise<string[]> {
+  async getCategories(): Promise<Category[]> {
     try {
       const response = await this.masterDataRepository.getCategories();
       if (response.error) {
@@ -16,7 +17,7 @@ export class MasterDataService {
     }
   }
 
-  async getAgeRatings(): Promise<string[]> {
+  async getAgeRatings(): Promise<AgeRating[]> {
     try {
       const response = await this.masterDataRepository.getAgeRatings();
       if (response.error) {
@@ -29,7 +30,7 @@ export class MasterDataService {
     }
   }
 
-  async getUniversities(): Promise<string[]> {
+  async getUniversities(): Promise<University[]> {
     try {
       const response = await this.masterDataRepository.getUniversities();
       if (response.error) {

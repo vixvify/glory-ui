@@ -244,13 +244,13 @@ export default function HomePage() {
             )}
 
             {universities.map((uni) => {
-              const uniMovies = allMovies.filter((m) => m.university === uni);
+              const uniMovies = allMovies.filter((m) => m.university === uni.name);
               if (uniMovies.length === 0) return null;
 
               return (
                 <MovieRow
-                  key={uni}
-                  title={`ผลงานภาพยนตร์จาก ${uni}`}
+                  key={uni.id}
+                  title={`ผลงานภาพยนตร์จาก ${uni.name}`}
                   movies={uniMovies}
                   onMovieClick={setSelectedMovie}
                   onPlayClick={handlePlayTrailer}
@@ -261,14 +261,14 @@ export default function HomePage() {
             })}
 
             {categories.map((category) => {
-              const categoryMovies = allMovies.filter((m) => m.category === category);
+              const categoryMovies = allMovies.filter((m) => m.category === category.name);
               if (categoryMovies.length === 0) return null;
 
-              const displayTitle = CATEGORY_TITLE_MAPPING[category];
+              const displayTitle = CATEGORY_TITLE_MAPPING[category.name];
 
               return (
                 <MovieRow
-                  key={category}
+                  key={category.id}
                   title={displayTitle}
                   movies={categoryMovies}
                   onMovieClick={setSelectedMovie}

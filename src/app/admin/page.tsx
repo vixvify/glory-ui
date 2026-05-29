@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
 import Navbar from "@/components/ui/navbar";
 import { Movie, CreateMovie, UpdateMovie } from "@/core/domain/movie";
@@ -29,7 +29,7 @@ import {
   useUpdateMovieMutation,
   useDeleteMovieMutation,
 } from "@/hooks/use-movies";
-import { useCategoriesQuery, useAgeRatingsQuery } from "@/hooks/use-master-data";
+import { useCategoriesQuery, useAgeRatingsQuery, useUniversitiesQuery } from "@/hooks/use-master-data";
 import { useLogoutMutation } from "@/hooks/use-auth";
 
 type MovieForm = {
@@ -66,6 +66,9 @@ export default function AdminPage() {
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [existingBtsPhotos, setExistingBtsPhotos] = useState<string[]>([]);
   const [newBtsPhotosFiles, setNewBtsPhotosFiles] = useState<File[]>([]);
+  const [btsVideos, setBtsVideos] = useState<string[]>([""]);
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
+  const [isDeletingLocal, setIsDeletingLocal] = useState(false);
 
   const handleBtsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -86,17 +89,22 @@ export default function AdminPage() {
   const { data: movies = [], isLoading: isMoviesLoading } = useMoviesQuery();
   const { data: availableCategories = [] } = useCategoriesQuery();
   const { data: availableAgeRatings = [] } = useAgeRatingsQuery();
+  const { data: availableUniversities = [] } = useUniversitiesQuery();
 
   const createMovieMutation = useCreateMovieMutation();
   const updateMovieMutation = useUpdateMovieMutation();
   const deleteMovieMutation = useDeleteMovieMutation();
   const logoutMutation = useLogoutMutation();
+  const isSaving = createMovieMutation.isPending || updateMovieMutation.isPending || isSavingLocal;
+  const isDeleting = deleteMovieMutation.isPending || isDeletingLocal;
+  const isMutating = isSaving || isDeleting;
 
   const {
     register,
     handleSubmit,
     setValue,
     reset,
+    control,
     formState: { errors },
   } = useForm<MovieForm>();
 
@@ -105,6 +113,7 @@ export default function AdminPage() {
     setSelectedFileName(null);
     setExistingBtsPhotos([]);
     setNewBtsPhotosFiles([]);
+    setBtsVideos([""]);
     reset({
       title: "",
       description: "",
@@ -132,6 +141,7 @@ export default function AdminPage() {
     setSelectedFileName(null);
     setExistingBtsPhotos(movie.bts?.btsPhotos || []);
     setNewBtsPhotosFiles([]);
+    setBtsVideos(movie.bts?.btsVideo && movie.bts.btsVideo.length > 0 ? movie.bts.btsVideo : [""]);
     reset({
       title: movie.title,
       description: movie.description,
@@ -155,12 +165,16 @@ export default function AdminPage() {
 
   const onSubmit = async (data: MovieForm) => {
     try {
+      setIsSavingLocal(true);
+      const activeVideos = btsVideos.map(v => v.trim()).filter(Boolean);
+      const thumbnailFile = data.thumbnail;
       const validated = parseSchema(createMovieSchema, {
         ...data,
-        thumbnail: data.thumbnail || editingMovie?.thumbnail,
+        thumbnail: thumbnailFile || editingMovie?.thumbnail,
         year: Number(data.year),
         matchRate: Number(data.matchRate),
         duration: Number(data.duration),
+        btsVideo: activeVideos.join(","),
         btsPhotos: editingMovie
           ? [...existingBtsPhotos, ...newBtsPhotosFiles]
           : newBtsPhotosFiles,
@@ -196,7 +210,7 @@ export default function AdminPage() {
           title: validated.title,
           description: validated.description,
           category: validated.category,
-          thumbnail: validated.thumbnail instanceof File ? validated.thumbnail : null,
+          thumbnail: validated.thumbnail as File,
           youtubeUrl: validated.youtubeUrl,
           year: validated.year,
           matchRate: validated.matchRate,
@@ -220,19 +234,24 @@ export default function AdminPage() {
       const errorMessage = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึกภาพยนตร์";
       showToast(errorMessage, "error");
       console.error(err);
+    } finally {
+      setIsSavingLocal(false);
     }
   };
 
   const handleDeleteConfirm = async () => {
     if (deleteMovieId) {
       try {
+        setIsDeletingLocal(true);
         await deleteMovieMutation.mutateAsync(deleteMovieId);
         showToast("ลบภาพยนตร์เรียบร้อยแล้ว", "success");
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "Failed to delete movie";
         alert(errorMessage);
+      } finally {
+        setIsDeletingLocal(false);
+        setDeleteMovieId(null);
       }
-      setDeleteMovieId(null);
     }
   };
 
@@ -380,8 +399,8 @@ export default function AdminPage() {
                 >
                   <option value="" className="bg-zinc-900 text-white">All Categories</option>
                   {availableCategories.map((cat) => (
-                    <option key={cat} value={cat} className="bg-zinc-900 text-white">
-                      {cat}
+                    <option key={cat.id} value={cat.name} className="bg-zinc-900 text-white">
+                      {cat.name}
                     </option>
                   ))}
                 </select>
@@ -543,8 +562,8 @@ export default function AdminPage() {
                       className="w-full bg-black/40 border border-zinc-800 focus:border-brand rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors cursor-pointer"
                     >
                       {availableCategories.map((cat) => (
-                        <option key={cat} value={cat} className="bg-zinc-900 text-white">
-                          {cat}
+                        <option key={cat.id} value={cat.name} className="bg-zinc-900 text-white">
+                          {cat.name}
                         </option>
                       ))}
                     </select>
@@ -557,8 +576,8 @@ export default function AdminPage() {
                       className="w-full bg-black/40 border border-zinc-800 focus:border-brand rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors cursor-pointer"
                     >
                       {availableAgeRatings.map((rating) => (
-                        <option key={rating} value={rating} className="bg-zinc-900 text-white">
-                          {rating}
+                        <option key={rating.id} value={rating.name} className="bg-zinc-900 text-white">
+                          {rating.name}
                         </option>
                       ))}
                     </select>
@@ -601,21 +620,24 @@ export default function AdminPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-zinc-300">Cover Image</label>
                   <div className="relative group/file">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      {...register("thumbnail", {
-                        required: editingMovie ? false : "Cover image is required",
-                        onChange: (e) => {
-                          const files = e.target.files;
-                          if (files && files.length > 0) {
-                            setSelectedFileName(files[0].name);
-                          } else {
-                            setSelectedFileName(null);
-                          }
-                        },
-                      })}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    <Controller
+                      name="thumbnail"
+                      control={control}
+                      defaultValue={null}
+                      render={({ field }) => (
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+
+                            field.onChange(file);
+
+                            setSelectedFileName(file?.name ?? null);
+                          }}
+                        />
+                      )}
                     />
                     <div className={`w-full bg-black/40 border ${errors.thumbnail ? "border-red-500" : "border-zinc-800 group-hover/file:border-brand"
                       } rounded-xl px-4 py-3 text-sm text-zinc-405 flex items-center justify-between transition-colors`}>
@@ -649,12 +671,20 @@ export default function AdminPage() {
                     Production & Crew Details (ข้อมูลผู้สร้างและเบื้องหลัง)
                   </h4>
 
-                  <Input
-                    label="University / Institution (สถาบัน/มหาวิทยาลัย)"
-                    placeholder="e.g. Chulalongkorn University"
-                    error={errors.university?.message}
-                    {...register("university")}
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-300">University / Institution (สถาบัน/มหาวิทยาลัย)</label>
+                    <select
+                      {...register("university")}
+                      className="w-full bg-black/40 border border-zinc-800 focus:border-brand rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors cursor-pointer"
+                    >
+                      <option value="" className="bg-zinc-900 text-zinc-400">None / Select University</option>
+                      {availableUniversities.map((uni) => (
+                        <option key={uni.id} value={uni.name} className="bg-zinc-900 text-white">
+                          {uni.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <Input
@@ -686,22 +716,55 @@ export default function AdminPage() {
                     />
                   </div>
 
-                  <Input
-                    label="BTS Video URL (ลิงก์วิดีโอเบื้องหลัง YouTube)"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    error={errors.btsVideo?.message}
-                    {...register("btsVideo")}
-                  />
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-zinc-300">
+                      BTS Video URLs (ลิงก์วิดีโอเบื้องหลัง YouTube)
+                    </label>
+                    <div className="space-y-2">
+                      {btsVideos.map((videoUrl, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            value={videoUrl}
+                            onChange={(e) => {
+                              const newVideos = [...btsVideos];
+                              newVideos[idx] = e.target.value;
+                              setBtsVideos(newVideos);
+                            }}
+                            className="flex-1 bg-black/40 border border-zinc-800 focus:border-brand rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors"
+                          />
+                          {btsVideos.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setBtsVideos(btsVideos.filter((_, i) => i !== idx));
+                              }}
+                              className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all cursor-pointer"
+                            >
+                              <CloseIcon className="text-sm" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setBtsVideos([...btsVideos, ""])}
+                        className="py-1.5 px-3 text-xs w-fit flex items-center gap-1.5"
+                      >
+                        <AddIcon className="text-xs" /> Add Another Video
+                      </Button>
+                    </div>
+                  </div>
 
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-zinc-300">
                       BTS Photos (รูปภาพเบื้องหลัง)
                     </label>
 
-                    {/* Previews grid */}
                     {(existingBtsPhotos.length > 0 || newBtsPhotosFiles.length > 0) && (
                       <div className="grid grid-cols-4 gap-2 mb-3">
-                        {/* Existing uploaded URLs */}
                         {existingBtsPhotos.map((url, idx) => (
                           <div key={`existing-${idx}`} className="relative group aspect-square rounded-xl overflow-hidden border border-zinc-800 bg-black/40 shadow-sm">
                             <img src={url} alt="BTS Preview" className="w-full h-full object-cover" />
@@ -718,7 +781,6 @@ export default function AdminPage() {
                           </div>
                         ))}
 
-                        {/* Newly added local files */}
                         {newBtsPhotosFiles.map((file, idx) => {
                           const objectUrl = URL.createObjectURL(file);
                           return (
@@ -828,6 +890,25 @@ export default function AdminPage() {
               >
                 Delete Title
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isMutating && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 rounded-full border-4 border-zinc-800/60" />
+              <div className="absolute inset-0 rounded-full border-4 border-brand border-t-transparent animate-spin" />
+            </div>
+            <div className="space-y-1.5 text-center">
+              <h3 className="text-xl font-bold tracking-wide text-white">
+                {isDeleting ? "กำลังลบภาพยนตร์..." : "กำลังบันทึกภาพยนตร์..."}
+              </h3>
+              <p className="text-xs text-zinc-400 font-light">
+                {isDeleting ? "กรุณารอสักครู่ ระบบกำลังลบข้อมูลภาพยนตร์จากระบบ" : "กรุณารอสักครู่ ระบบกำลังอัปโหลดข้อมูลและภาพปก"}
+              </p>
             </div>
           </div>
         </div>

@@ -45,6 +45,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     handleSubmit: handleFormSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm<AuthFormValues>({
     resolver: zodResolver(activeSchema),
     defaultValues: {
@@ -61,21 +62,22 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
 
     try {
       if (isSignUp) {
-        const user = await registerMutation.mutateAsync({
+        await registerMutation.mutateAsync({
           name: data.name!,
           email: data.email,
           password: data.password,
         });
-        onLoginSuccess(user);
+        setIsSignUp(false);
+        setValue("password", "");
       } else {
         const user = await loginMutation.mutateAsync({
           email: data.email,
           password: data.password,
         });
         onLoginSuccess(user);
+        onClose();
+        resetForm();
       }
-      onClose();
-      resetForm();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Authentication failed";
       setError(errorMessage);

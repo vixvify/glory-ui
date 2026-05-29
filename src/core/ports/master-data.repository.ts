@@ -1,7 +1,8 @@
 import { ApiResponse } from "@/infra/interface/response";
+import { Category, University, AgeRating } from "../domain/movie";
 
 export interface MasterDataRepository {
-  getCategories(): Promise<ApiResponse<string[]>>;
-  getUniversities(): Promise<ApiResponse<string[]>>;
-  getAgeRatings(): Promise<ApiResponse<string[]>>;
+  getCategories(): Promise<ApiResponse<Category[]>>;
+  getUniversities(): Promise<ApiResponse<University[]>>;
+  getAgeRatings(): Promise<ApiResponse<AgeRating[]>>;
 }

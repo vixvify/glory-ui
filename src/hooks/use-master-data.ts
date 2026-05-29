@@ -1,22 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { masterDataService } from "@/infra/container";
+import { Category, University, AgeRating } from "@/core/domain/movie";
 
 export function useCategoriesQuery() {
-  return useQuery<string[], Error>({
+  return useQuery<Category[], Error>({
     queryKey: ["categories"],
     queryFn: () => masterDataService.getCategories(),
   });
 }
 
 export function useUniversitiesQuery() {
-  return useQuery<string[], Error>({
+  return useQuery<University[], Error>({
     queryKey: ["universities"],
     queryFn: () => masterDataService.getUniversities(),
   });
 }
 
 export function useAgeRatingsQuery() {
-  return useQuery<string[], Error>({
+  return useQuery<AgeRating[], Error>({
     queryKey: ["ageRatings"],
     queryFn: () => masterDataService.getAgeRatings(),
   });

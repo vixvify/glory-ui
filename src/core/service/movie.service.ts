@@ -78,7 +78,7 @@ export class MovieService {
       formData.append("duration", String(validated.duration));
 
       if (validated.university) formData.append("university", validated.university);
-      
+
       const directors = parseStringOrArray(validated.director);
       directors.forEach(d => formData.append("director", d));
 
@@ -117,15 +117,6 @@ export class MovieService {
 
       if (validated.thumbnail instanceof File) {
         formData.append("thumbnail", validated.thumbnail);
-      } else if (
-        validated.thumbnail &&
-        typeof validated.thumbnail === "object" &&
-        "length" in validated.thumbnail
-      ) {
-        const list = validated.thumbnail as unknown as FileList;
-        if (list.length > 0) {
-          formData.append("thumbnail", list[0] as File);
-        }
       }
 
       const response = await this.movieRepository.createMovie(formData);
@@ -152,7 +143,7 @@ export class MovieService {
       formData.append("duration", String(validated.duration));
 
       if (validated.university) formData.append("university", validated.university);
-      
+
       const directors = parseStringOrArray(validated.director);
       directors.forEach(d => formData.append("director", d));
 
