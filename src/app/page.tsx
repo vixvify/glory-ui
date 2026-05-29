@@ -16,15 +16,14 @@ import Loading from "./loading";
 import { Toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_TITLE_MAPPING } from "@/core/constants/categories";
+import { useMoviesQuery } from "@/hooks/use-movies";
+import { useFavoritesQuery, useToggleFavoriteMutation } from "@/hooks/use-favorites";
 import {
-  useMoviesQuery,
-  useFavoritesQuery,
   useMovieUserRatingQuery,
-  useToggleFavoriteMutation,
   useAddRatingMutation,
   useUpdateRatingMutation,
   useDeleteRatingMutation,
-} from "@/hooks/use-movies";
+} from "@/hooks/use-ratings";
 import { useCategoriesQuery, useUniversitiesQuery } from "@/hooks/use-master-data";
 import { useLogoutMutation } from "@/hooks/use-auth";
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
 import Navbar from "@/components/ui/navbar";
-import { Movie, CreateMovie, UpdateMovie } from "@/core/domain/movie";
+import { Movie, CreateMovie, UpdateMovie, CrewMember } from "@/core/domain/movie";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -29,9 +29,17 @@ import {
   useUpdateMovieMutation,
   useDeleteMovieMutation,
 } from "@/hooks/use-movies";
-import { useCategoriesQuery, useAgeRatingsQuery, useUniversitiesQuery, useCrewMembersQuery } from "@/hooks/use-master-data";
+import { useCategoriesQuery, useAgeRatingsQuery, useUniversitiesQuery } from "@/hooks/use-master-data";
+import {
+  useCrewMembersQuery,
+  useCreateCrewMemberMutation,
+  useUpdateCrewMemberMutation,
+  useDeleteCrewMemberMutation,
+} from "@/hooks/use-crew-members";
 import { useLogoutMutation } from "@/hooks/use-auth";
 import { CreatableSearchSelect } from "@/components/ui/creatable-search-select";
+import PeopleIcon from "@mui/icons-material/People";
+import PersonIcon from "@mui/icons-material/Person";
 
 type MovieForm = {
   title: string;
@@ -55,6 +63,7 @@ type MovieForm = {
 type Sortby = "title" | "year" | "views";
 
 export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState<"movies" | "crew">("movies");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortBy, setSortBy] = useState<Sortby>("title");
@@ -70,6 +79,12 @@ export default function AdminPage() {
   const [btsVideos, setBtsVideos] = useState<string[]>([""]);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
   const [isDeletingLocal, setIsDeletingLocal] = useState(false);
+
+  const [crewSearchQuery, setCrewSearchQuery] = useState("");
+  const [isCrewFormOpen, setIsCrewFormOpen] = useState(false);
+  const [editingCrew, setEditingCrew] = useState<CrewMember | null>(null);
+  const [deleteCrewId, setDeleteCrewId] = useState<string | null>(null);
+  const [crewNameInput, setCrewNameInput] = useState("");
 
   const [directors, setDirectors] = useState<Array<{ id: string; name: string }>>([{ id: "", name: "" }]);
   const [producers, setProducers] = useState<Array<{ id: string; name: string }>>([{ id: "", name: "" }]);
@@ -102,9 +117,21 @@ export default function AdminPage() {
   const createMovieMutation = useCreateMovieMutation();
   const updateMovieMutation = useUpdateMovieMutation();
   const deleteMovieMutation = useDeleteMovieMutation();
+  const createCrewMutation = useCreateCrewMemberMutation();
+  const updateCrewMutation = useUpdateCrewMemberMutation();
+  const deleteCrewMutation = useDeleteCrewMemberMutation();
   const logoutMutation = useLogoutMutation();
-  const isSaving = createMovieMutation.isPending || updateMovieMutation.isPending || isSavingLocal;
-  const isDeleting = deleteMovieMutation.isPending || isDeletingLocal;
+
+  const isSaving =
+    createMovieMutation.isPending ||
+    updateMovieMutation.isPending ||
+    createCrewMutation.isPending ||
+    updateCrewMutation.isPending ||
+    isSavingLocal;
+  const isDeleting =
+    deleteMovieMutation.isPending ||
+    deleteCrewMutation.isPending ||
+    isDeletingLocal;
   const isMutating = isSaving || isDeleting;
 
   const {
@@ -155,7 +182,6 @@ export default function AdminPage() {
     setNewBtsPhotosFiles([]);
     setBtsVideos(movie.bts?.btsVideo && movie.bts.btsVideo.length > 0 ? movie.bts.btsVideo : [""]);
 
-    // Extract existing crew members
     const movieDirectors = movie.crew?.filter(c => c.role.toLowerCase() === "director").map(c => ({
       id: c.crewMember?.id || "",
       name: c.crewMember?.name || ""
@@ -298,6 +324,77 @@ export default function AdminPage() {
     }
   };
 
+  const handleOpenAddCrew = () => {
+    setEditingCrew(null);
+    setCrewNameInput("");
+    setIsCrewFormOpen(true);
+  };
+
+  const handleOpenEditCrew = (crew: CrewMember) => {
+    setEditingCrew(crew);
+    setCrewNameInput(crew.name);
+    setIsCrewFormOpen(true);
+  };
+
+  const handleCrewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!crewNameInput.trim()) {
+      showToast("กรุณากรอกชื่อทีมงาน", "error");
+      return;
+    }
+    try {
+      setIsSavingLocal(true);
+      if (editingCrew) {
+        await updateCrewMutation.mutateAsync({
+          id: editingCrew.id,
+          name: crewNameInput.trim(),
+        });
+        showToast("แก้ไขข้อมูลทีมงานเรียบร้อยแล้ว", "success");
+      } else {
+        await createCrewMutation.mutateAsync(crewNameInput.trim());
+        showToast("เพิ่มทีมงานเรียบร้อยแล้ว", "success");
+      }
+      setIsCrewFormOpen(false);
+      setEditingCrew(null);
+      setCrewNameInput("");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
+      showToast(errorMessage, "error");
+      console.error(err);
+    } finally {
+      setIsSavingLocal(false);
+    }
+  };
+
+  const handleCrewDeleteConfirm = async () => {
+    if (deleteCrewId) {
+      try {
+        setIsDeletingLocal(true);
+        await deleteCrewMutation.mutateAsync(deleteCrewId);
+        showToast("ลบข้อมูลทีมงานเรียบร้อยแล้ว", "success");
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบข้อมูล";
+        showToast(errorMessage, "error");
+        console.error(err);
+      } finally {
+        setIsDeletingLocal(false);
+        setDeleteCrewId(null);
+      }
+    }
+  };
+
+  const getFilteredAndSortedCrew = () => {
+    let list = [...availableCrew];
+    if (crewSearchQuery.trim() !== "") {
+      const q = crewSearchQuery.toLowerCase();
+      list = list.filter((c) => c.name.toLowerCase().includes(q));
+    }
+    list.sort((a, b) => a.name.localeCompare(b.name, "th"));
+    return list;
+  };
+
+  const filteredCrew = getFilteredAndSortedCrew();
+
   const totalViews = movies.reduce((sum, m) => sum + (m.views || 0), 0);
 
   const getFilteredAndSortedMovies = () => {
@@ -369,21 +466,21 @@ export default function AdminPage() {
           </div>
 
           <Button
-            onClick={handleOpenAdd}
+            onClick={activeTab === "movies" ? handleOpenAdd : handleOpenAddCrew}
             className="flex items-center justify-center gap-2"
           >
             <AddIcon className="text-lg" />
-            Add New Movie
+            {activeTab === "movies" ? "Add New Movie" : "Add Crew Member"}
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 animate-fade-in">
           <div className="bg-card border border-zinc-800/40 p-5 rounded-2xl flex items-center gap-5 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-brand/35 hover:-translate-y-0.5">
             <div className="w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
               <MovieIcon className="text-2xl" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold">Total Titles</p>
+              <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold text-[10px]">Total Titles</p>
               <h3 className="text-2xl font-black">{movies.length}</h3>
             </div>
           </div>
@@ -393,7 +490,7 @@ export default function AdminPage() {
               <CategoryIcon className="text-2xl" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold">Categories</p>
+              <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold text-[10px]">Categories</p>
               <h3 className="text-2xl font-black">{availableCategories.length}</h3>
             </div>
           </div>
@@ -403,170 +500,318 @@ export default function AdminPage() {
               <VisibilityIcon className="text-2xl" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold">Total Views</p>
+              <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold text-[10px]">Total Views</p>
               <h3 className="text-2xl font-black">{totalViews.toLocaleString()}</h3>
             </div>
           </div>
-        </div>
 
-        <div className="bg-card border border-zinc-800/35 rounded-2xl shadow-xl overflow-hidden backdrop-blur-md">
-          <div className="p-5 border-b border-zinc-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-                <SearchIcon className="text-lg" />
-              </span>
-              <input
-                type="text"
-                placeholder="Search catalog by title, genre, or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm bg-black/40 border border-zinc-800 focus:border-brand focus:outline-none rounded-xl text-white placeholder-zinc-500 transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-white transition-colors"
-                >
-                  <CloseIcon className="text-base" />
-                </button>
-              )}
+          <div className="bg-card border border-zinc-800/40 p-5 rounded-2xl flex items-center gap-5 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-brand/35 hover:-translate-y-0.5">
+            <div className="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+              <PeopleIcon className="text-2xl" />
             </div>
-
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-400 font-semibold whitespace-nowrap">Filter:</span>
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="text-xs bg-zinc-900 border border-zinc-800 text-white rounded-lg px-3 py-1.5 focus:border-brand focus:outline-none cursor-pointer"
-                >
-                  <option value="" className="bg-zinc-900 text-white">All Categories</option>
-                  {availableCategories.map((cat) => (
-                    <option key={cat.id} value={cat.name} className="bg-zinc-900 text-white">
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-400 font-semibold whitespace-nowrap">Sort:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as Sortby)}
-                  className="text-xs bg-zinc-900 border border-zinc-800 text-white rounded-lg px-3 py-1.5 focus:border-brand focus:outline-none cursor-pointer"
-                >
-                  <option value="title" className="bg-zinc-900 text-white">Alphabetical</option>
-                  <option value="year" className="bg-zinc-900 text-white">Release Year</option>
-                  <option value="views" className="bg-zinc-900 text-white">Popularity</option>
-                </select>
-              </div>
+            <div className="space-y-0.5">
+              <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold text-[10px]">Crew Directory</p>
+              <h3 className="text-2xl font-black">{availableCrew.length}</h3>
             </div>
           </div>
+        </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-zinc-800/40 text-xs font-bold text-zinc-400 uppercase bg-zinc-950/20">
-                  <th className="py-4 px-6">Movie</th>
-                  <th className="py-4 px-6">Genre</th>
-                  <th className="py-4 px-6">Release / Rating</th>
-                  <th className="py-4 px-6">Duration</th>
-                  <th className="py-4 px-6">Stats</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/30 text-sm">
-                {filteredMovies.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-16 text-center text-zinc-500 font-light">
-                      No movies matching your active filter.
-                    </td>
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-zinc-800/60 gap-8">
+          <button
+            onClick={() => setActiveTab("movies")}
+            className={`pb-4 text-sm font-bold transition-all relative ${activeTab === "movies"
+              ? "text-brand"
+              : "text-zinc-400 hover:text-zinc-200 cursor-pointer"
+              }`}
+          >
+            ภาพยนตร์ ({movies.length})
+            {activeTab === "movies" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand rounded-full animate-fade-in" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("crew")}
+            className={`pb-4 text-sm font-bold transition-all relative ${activeTab === "crew"
+              ? "text-brand"
+              : "text-zinc-400 hover:text-zinc-200 cursor-pointer"
+              }`}
+          >
+            ทีมงาน & นักแสดง ({availableCrew.length})
+            {activeTab === "crew" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand rounded-full animate-fade-in" />
+            )}
+          </button>
+        </div>
+
+        {activeTab === "movies" ? (
+          <div className="bg-card border border-zinc-800/35 rounded-2xl shadow-xl overflow-hidden backdrop-blur-md animate-fade-in">
+            <div className="p-5 border-b border-zinc-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+                  <SearchIcon className="text-lg" />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Search catalog by title, genre, or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 text-sm bg-black/40 border border-zinc-800 focus:border-brand focus:outline-none rounded-xl text-white placeholder-zinc-500 transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-white transition-colors"
+                  >
+                    <CloseIcon className="text-base" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 self-end md:self-auto">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-400 font-semibold whitespace-nowrap">Filter:</span>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="text-xs bg-zinc-900 border border-zinc-800 text-white rounded-lg px-3 py-1.5 focus:border-brand focus:outline-none cursor-pointer"
+                  >
+                    <option value="" className="bg-zinc-900 text-white">All Categories</option>
+                    {availableCategories.map((cat) => (
+                      <option key={cat.id} value={cat.name} className="bg-zinc-900 text-white">
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-zinc-400 font-semibold whitespace-nowrap">Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as Sortby)}
+                    className="text-xs bg-zinc-900 border border-zinc-800 text-white rounded-lg px-3 py-1.5 focus:border-brand focus:outline-none cursor-pointer"
+                  >
+                    <option value="title" className="bg-zinc-900 text-white">Alphabetical</option>
+                    <option value="year" className="bg-zinc-900 text-white">Release Year</option>
+                    <option value="views" className="bg-zinc-900 text-white">Popularity</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-zinc-800/40 text-xs font-bold text-zinc-400 uppercase bg-zinc-950/20">
+                    <th className="py-4 px-6">Movie</th>
+                    <th className="py-4 px-6">Genre</th>
+                    <th className="py-4 px-6">Release / Rating</th>
+                    <th className="py-4 px-6">Duration</th>
+                    <th className="py-4 px-6">Stats</th>
+                    <th className="py-4 px-6 text-right">Actions</th>
                   </tr>
-                ) : (
-                  filteredMovies.map((movie) => (
-                    <tr
-                      key={movie.id}
-                      className="group/row hover:bg-zinc-900/10 transition-colors"
-                    >
-                      <td className="py-4 px-6 flex items-center gap-4">
-                        <div className="relative w-12 h-16 rounded-lg overflow-hidden border border-zinc-800/50 shadow-md flex-shrink-0">
-                          <img
-                            src={movie.thumbnail}
-                            alt={movie.title}
-                            className="w-full h-full object-cover group-hover/row:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <div className="space-y-0.5">
-                          <h4 className="font-bold text-white group-hover/row:text-brand transition-colors">
-                            {movie.title}
-                          </h4>
-                          <p className="text-xs text-zinc-400 max-w-[240px] truncate font-light">
-                            {movie.description}
-                          </p>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-6">
-                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-brand/10 text-brand border border-brand/20">
-                          {movie.category}
-                        </span>
-                      </td>
-
-                      <td className="py-4 px-6 space-y-1">
-                        <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-semibold">
-                          <CalendarTodayIcon className="text-[10px] text-zinc-500" />
-                          {movie.year}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 text-[10px] font-bold border border-zinc-700 text-zinc-400 rounded leading-none">
-                            {movie.ageRating}
-                          </span>
-                          <span className="text-[10px] text-emerald-400 font-bold">{movie.matchRate}% Match</span>
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-6 text-zinc-300 font-medium">
-                        <div className="flex items-center gap-1">
-                          <AccessTimeIcon className="text-xs text-zinc-500" />
-                          {movie.duration}
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-6 space-y-1">
-                        <div className="text-xs text-zinc-300 flex items-center gap-1">
-                          <VisibilityIcon className="text-xs text-zinc-500" />
-                          {(movie.views || 0).toLocaleString()} views
-                        </div>
-                        <div className="text-[10px] text-zinc-400 flex items-center gap-1">
-                          <StarIcon className="text-[10px] text-zinc-500" />
-                          {movie.ratings?.length || 0} reviews
-                        </div>
-                      </td>
-
-                      <td className="py-4 px-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleOpenEdit(movie)}
-                            className="p-2 rounded-lg bg-zinc-800/80 hover:bg-brand/20 text-zinc-400 hover:text-brand border border-zinc-800 hover:border-brand/30 transition-all cursor-pointer"
-                          >
-                            <EditIcon className="text-sm" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteMovieId(movie.id)}
-                            className="p-2 rounded-lg bg-zinc-800/80 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-zinc-800 hover:border-red-500/30 transition-all cursor-pointer"
-                          >
-                            <DeleteIcon className="text-sm" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/30 text-sm">
+                  {filteredMovies.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-16 text-center text-zinc-500 font-light">
+                        No movies matching your active filter.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredMovies.map((movie) => (
+                      <tr
+                        key={movie.id}
+                        className="group/row hover:bg-zinc-900/10 transition-colors"
+                      >
+                        <td className="py-4 px-6 flex items-center gap-4">
+                          <div className="relative w-12 h-16 rounded-lg overflow-hidden border border-zinc-800/50 shadow-md flex-shrink-0">
+                            <img
+                              src={movie.thumbnail}
+                              alt={movie.title}
+                              className="w-full h-full object-cover group-hover/row:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                          <div className="space-y-0.5">
+                            <h4 className="font-bold text-white group-hover/row:text-brand transition-colors">
+                              {movie.title}
+                            </h4>
+                            <p className="text-xs text-zinc-400 max-w-[240px] truncate font-light">
+                              {movie.description}
+                            </p>
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6">
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-brand/10 text-brand border border-brand/20">
+                            {movie.category}
+                          </span>
+                        </td>
+
+                        <td className="py-4 px-6 space-y-1">
+                          <div className="flex items-center gap-1.5 text-xs text-zinc-300 font-semibold">
+                            <CalendarTodayIcon className="text-[10px] text-zinc-500" />
+                            {movie.year}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold border border-zinc-700 text-zinc-400 rounded leading-none">
+                              {movie.ageRating}
+                            </span>
+                            <span className="text-[10px] text-emerald-400 font-bold">{movie.matchRate}% Match</span>
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6 text-zinc-300 font-medium">
+                          <div className="flex items-center gap-1">
+                            <AccessTimeIcon className="text-xs text-zinc-500" />
+                            {movie.duration}
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6 space-y-1">
+                          <div className="text-xs text-zinc-300 flex items-center gap-1">
+                            <VisibilityIcon className="text-xs text-zinc-500" />
+                            {(movie.views || 0).toLocaleString()} views
+                          </div>
+                          <div className="text-[10px] text-zinc-400 flex items-center gap-1">
+                            <StarIcon className="text-[10px] text-zinc-500" />
+                            {movie.ratings?.length || 0} reviews
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-6 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleOpenEdit(movie)}
+                              className="p-2 rounded-lg bg-zinc-800/80 hover:bg-brand/20 text-zinc-400 hover:text-brand border border-zinc-800 hover:border-brand/30 transition-all cursor-pointer"
+                            >
+                              <EditIcon className="text-sm" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteMovieId(movie.id)}
+                              className="p-2 rounded-lg bg-zinc-800/80 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-zinc-800 hover:border-red-500/30 transition-all cursor-pointer"
+                            >
+                              <DeleteIcon className="text-sm" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-card border border-zinc-800/35 rounded-2xl shadow-xl overflow-hidden backdrop-blur-md animate-fade-in">
+            <div className="p-5 border-b border-zinc-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+                  <SearchIcon className="text-lg" />
+                </span>
+                <input
+                  type="text"
+                  placeholder="ค้นหาชื่อทีมงาน / นักแสดง..."
+                  value={crewSearchQuery}
+                  onChange={(e) => setCrewSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 text-sm bg-black/40 border border-zinc-800 focus:border-brand focus:outline-none rounded-xl text-white placeholder-zinc-500 transition-colors"
+                />
+                {crewSearchQuery && (
+                  <button
+                    onClick={() => setCrewSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-white transition-colors"
+                  >
+                    <CloseIcon className="text-base" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-zinc-800/40 text-xs font-bold text-zinc-400 uppercase bg-zinc-950/20">
+                    <th className="py-4 px-6">ชื่อ-นามสกุล</th>
+                    <th className="py-4 px-6">สถานะผลงาน</th>
+                    <th className="py-4 px-6">วันที่บันทึก</th>
+                    <th className="py-4 px-6 text-right">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/30 text-sm">
+                  {filteredCrew.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-16 text-center text-zinc-500 font-light">
+                        ไม่พบรายชื่อทีมงานที่ระบุ
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredCrew.map((member) => {
+                      const movieCount = movies.filter((m) =>
+                        m.crew?.some((c) => c.crewMember?.id === member.id)
+                      ).length;
+
+                      return (
+                        <tr
+                          key={member.id}
+                          className="group/row hover:bg-zinc-900/10 transition-colors"
+                        >
+                          <td className="py-4 px-6 flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center text-brand flex-shrink-0">
+                              <PersonIcon className="text-lg" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-white group-hover/row:text-brand transition-colors">
+                                {member.name}
+                              </h4>
+                              <p className="text-[10px] text-zinc-500 font-mono">
+                                ID: {member.id}
+                              </p>
+                            </div>
+                          </td>
+
+                          <td className="py-4 px-6">
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${movieCount > 0
+                              ? "bg-brand/10 text-brand border border-brand/20"
+                              : "bg-zinc-800/60 text-zinc-400 border border-zinc-800"
+                              }`}>
+                              มีส่วนร่วมภาพยนตร์ {movieCount} เรื่อง
+                            </span>
+                          </td>
+
+                          <td className="py-4 px-6 text-zinc-450 font-light">
+                            {new Date(member.createdAt).toLocaleDateString("th-TH", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </td>
+
+                          <td className="py-4 px-6 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleOpenEditCrew(member)}
+                                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-brand/20 text-zinc-400 hover:text-brand border border-zinc-800 hover:border-brand/30 transition-all cursor-pointer"
+                              >
+                                <EditIcon className="text-sm" />
+                              </button>
+                              <button
+                                onClick={() => setDeleteCrewId(member.id)}
+                                className="p-2 rounded-lg bg-zinc-800/80 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-zinc-800 hover:border-red-500/30 transition-all cursor-pointer"
+                              >
+                                <DeleteIcon className="text-sm" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </main>
 
       {isFormOpen && (
@@ -1054,6 +1299,94 @@ export default function AdminPage() {
                 className="flex-1 py-2.5 text-xs font-semibold bg-red-500 hover:bg-red-600 text-white border-0 rounded-xl shadow-lg shadow-red-500/20"
               >
                 Delete Title
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Crew Member Add/Edit Modal */}
+      {isCrewFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-zinc-800/60 p-6 md:p-8 rounded-2xl max-w-md w-full space-y-6 shadow-2xl relative animate-scale-up">
+            <button
+              onClick={() => setIsCrewFormOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-zinc-800/60 text-zinc-400 hover:text-white transition-colors cursor-pointer border-0"
+            >
+              <CloseIcon />
+            </button>
+
+            <div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent">
+                {editingCrew ? "แก้ไขข้อมูลทีมงาน" : "เพิ่มทีมงาน / นักแสดงใหม่"}
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1 font-light">
+                กรอกรายชื่อทีมงานหรือนักแสดงที่ต้องการเพิ่มเข้าสู่ระบบเพื่อใช้เป็นตัวเลือกสำหรับภาพยนตร์
+              </p>
+            </div>
+
+            <form onSubmit={handleCrewSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-300">ชื่อ-นามสกุล</label>
+                <input
+                  type="text"
+                  placeholder="เช่น สมชาย ใจดี"
+                  value={crewNameInput}
+                  onChange={(e) => setCrewNameInput(e.target.value)}
+                  className="w-full bg-black/40 border border-zinc-800 focus:border-brand rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors"
+                  required
+                />
+              </div>
+
+              <div className="pt-4 border-t border-zinc-800/40 flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsCrewFormOpen(false)}
+                  className="flex-1 py-2.5 text-xs font-semibold rounded-xl"
+                >
+                  ยกเลิก
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 py-2.5 text-xs font-semibold rounded-xl"
+                >
+                  {editingCrew ? "บันทึกการแก้ไข" : "เพิ่มรายชื่อ"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Crew Member Delete Confirmation Modal */}
+      {deleteCrewId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-zinc-800/60 p-6 md:p-8 rounded-2xl max-w-sm w-full text-center space-y-6 shadow-2xl relative animate-scale-up">
+            <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl">
+              <DeleteIcon />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-white">ยืนยันการลบรายชื่อทีมงาน?</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed font-light">
+                การลบนี้เป็นแบบถาวรและไม่สามารถเรียกคืนได้ การลบรายชื่อนี้อาจส่งผลต่อข้อมูลของภาพยนตร์ที่มีทีมงานท่านนี้มีส่วนร่วมอยู่
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setDeleteCrewId(null)}
+                className="flex-1 py-2.5 text-xs font-semibold rounded-xl"
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                onClick={handleCrewDeleteConfirm}
+                className="flex-1 py-2.5 text-xs font-semibold bg-red-500 hover:bg-red-600 text-white border-0 rounded-xl shadow-lg shadow-red-500/20"
+              >
+                ลบรายชื่อทีมงาน
               </Button>
             </div>
           </div>

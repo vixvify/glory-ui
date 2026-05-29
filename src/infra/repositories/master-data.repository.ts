@@ -1,6 +1,6 @@
 import { ApiResponse } from "../interface/response";
 import { MasterDataRepository } from "@/core/ports/master-data.repository";
-import { Category, University, AgeRating, CrewMember } from "@/core/domain/movie";
+import { Category, University, AgeRating } from "@/core/domain/movie";
 import httpClient from "@/lib/http";
 
 export class MasterDataRepositoryImpl implements MasterDataRepository {
@@ -16,11 +16,6 @@ export class MasterDataRepositoryImpl implements MasterDataRepository {
 
   async getAgeRatings(): Promise<ApiResponse<AgeRating[]>> {
     const response = await httpClient.get<AgeRating[]>("/masterdata/ratings");
-    return response;
-  }
-
-  async getCrewMembers(): Promise<ApiResponse<CrewMember[]>> {
-    const response = await httpClient.get<CrewMember[]>("/masterdata/crews");
     return response;
   }
 }
