@@ -29,8 +29,9 @@ import {
   useUpdateMovieMutation,
   useDeleteMovieMutation,
 } from "@/hooks/use-movies";
-import { useCategoriesQuery, useAgeRatingsQuery, useUniversitiesQuery } from "@/hooks/use-master-data";
+import { useCategoriesQuery, useAgeRatingsQuery, useUniversitiesQuery, useCrewMembersQuery } from "@/hooks/use-master-data";
 import { useLogoutMutation } from "@/hooks/use-auth";
+import { CreatableSearchSelect } from "@/components/ui/creatable-search-select";
 
 type MovieForm = {
   title: string;
@@ -70,6 +71,11 @@ export default function AdminPage() {
   const [isSavingLocal, setIsSavingLocal] = useState(false);
   const [isDeletingLocal, setIsDeletingLocal] = useState(false);
 
+  const [directors, setDirectors] = useState<Array<{ id: string; name: string }>>([{ id: "", name: "" }]);
+  const [producers, setProducers] = useState<Array<{ id: string; name: string }>>([{ id: "", name: "" }]);
+  const [writers, setWriters] = useState<Array<{ id: string; name: string }>>([{ id: "", name: "" }]);
+  const [castMembers, setCastMembers] = useState<Array<{ id: string; name: string }>>([{ id: "", name: "" }]);
+
   const handleBtsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -90,6 +96,8 @@ export default function AdminPage() {
   const { data: availableCategories = [] } = useCategoriesQuery();
   const { data: availableAgeRatings = [] } = useAgeRatingsQuery();
   const { data: availableUniversities = [] } = useUniversitiesQuery();
+  const { data: availableCrew = [] } = useCrewMembersQuery();
+  const crewOptions = availableCrew.map((c) => ({ id: c.id, name: c.name }));
 
   const createMovieMutation = useCreateMovieMutation();
   const updateMovieMutation = useUpdateMovieMutation();
@@ -114,6 +122,10 @@ export default function AdminPage() {
     setExistingBtsPhotos([]);
     setNewBtsPhotosFiles([]);
     setBtsVideos([""]);
+    setDirectors([{ id: "", name: "" }]);
+    setProducers([{ id: "", name: "" }]);
+    setWriters([{ id: "", name: "" }]);
+    setCastMembers([{ id: "", name: "" }]);
     reset({
       title: "",
       description: "",
@@ -142,6 +154,33 @@ export default function AdminPage() {
     setExistingBtsPhotos(movie.bts?.btsPhotos || []);
     setNewBtsPhotosFiles([]);
     setBtsVideos(movie.bts?.btsVideo && movie.bts.btsVideo.length > 0 ? movie.bts.btsVideo : [""]);
+
+    // Extract existing crew members
+    const movieDirectors = movie.crew?.filter(c => c.role.toLowerCase() === "director").map(c => ({
+      id: c.crewMember?.id || "",
+      name: c.crewMember?.name || ""
+    })).filter((x): x is { id: string; name: string } => !!x.name) || [];
+
+    const movieProducers = movie.crew?.filter(c => c.role.toLowerCase() === "producer").map(c => ({
+      id: c.crewMember?.id || "",
+      name: c.crewMember?.name || ""
+    })).filter((x): x is { id: string; name: string } => !!x.name) || [];
+
+    const movieWriters = movie.crew?.filter(c => c.role.toLowerCase() === "writer").map(c => ({
+      id: c.crewMember?.id || "",
+      name: c.crewMember?.name || ""
+    })).filter((x): x is { id: string; name: string } => !!x.name) || [];
+
+    const movieCast = movie.crew?.filter(c => c.role.toLowerCase() === "cast").map(c => ({
+      id: c.crewMember?.id || "",
+      name: c.crewMember?.name || ""
+    })).filter((x): x is { id: string; name: string } => !!x.name) || [];
+
+    setDirectors(movieDirectors.length > 0 ? movieDirectors : [{ id: "", name: "" }]);
+    setProducers(movieProducers.length > 0 ? movieProducers : [{ id: "", name: "" }]);
+    setWriters(movieWriters.length > 0 ? movieWriters : [{ id: "", name: "" }]);
+    setCastMembers(movieCast.length > 0 ? movieCast : [{ id: "", name: "" }]);
+
     reset({
       title: movie.title,
       description: movie.description,
@@ -153,10 +192,10 @@ export default function AdminPage() {
       ageRating: movie.ageRating,
       duration: movie.duration,
       university: movie.university || "",
-      director: movie.crew?.filter(c => c.role.toLowerCase() === "director").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
-      producer: movie.crew?.filter(c => c.role.toLowerCase() === "producer").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
-      writer: movie.crew?.filter(c => c.role.toLowerCase() === "writer").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
-      cast: movie.crew?.filter(c => c.role.toLowerCase() === "cast").map(c => c.crewMember?.name).filter(Boolean).join(", ") || "",
+      director: "",
+      producer: "",
+      writer: "",
+      cast: "",
       btsVideo: movie.bts?.btsVideo ? movie.bts.btsVideo.join(", ") : "",
       btsPhotos: movie.bts?.btsPhotos ? movie.bts.btsPhotos.join(", ") : "",
     });
@@ -178,6 +217,10 @@ export default function AdminPage() {
         btsPhotos: editingMovie
           ? [...existingBtsPhotos, ...newBtsPhotosFiles]
           : newBtsPhotosFiles,
+        director: directors.filter(d => d.name.trim() !== "").map(d => d.id || d.name.trim()),
+        producer: producers.filter(p => p.name.trim() !== "").map(p => p.id || p.name.trim()),
+        writer: writers.filter(w => w.name.trim() !== "").map(w => w.id || w.name.trim()),
+        cast: castMembers.filter(c => c.name.trim() !== "").map(c => c.id || c.name.trim()),
       });
 
       if (editingMovie) {
@@ -686,34 +729,156 @@ export default function AdminPage() {
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      label="Director (ผู้กำกับ)"
-                      placeholder="e.g. Christopher Nolan"
-                      error={errors.director?.message}
-                      {...register("director")}
-                    />
-                    <Input
-                      label="Producer (ผู้อำนวยการสร้าง)"
-                      placeholder="e.g. Emma Thomas"
-                      error={errors.producer?.message}
-                      {...register("producer")}
-                    />
+                  {/* Directors Section */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-300">Director (ผู้กำกับ)</label>
+                    <div className="space-y-2">
+                      {directors.map((director, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <CreatableSearchSelect
+                            value={director}
+                            options={crewOptions}
+                            placeholder="พิมพ์ชื่อ หรือเลือกผู้กำกับ..."
+                            onChange={(val) => {
+                              const newDirectors = [...directors];
+                              newDirectors[idx] = val;
+                              setDirectors(newDirectors);
+                            }}
+                          />
+                          {directors.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setDirectors(directors.filter((_, i) => i !== idx))}
+                              className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all cursor-pointer flex-shrink-0"
+                            >
+                              <CloseIcon className="text-sm" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setDirectors([...directors, { id: "", name: "" }])}
+                        className="py-1.5 px-3 text-[11px] h-8 w-fit flex items-center gap-1 bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 hover:text-white text-zinc-300 font-semibold"
+                      >
+                        <AddIcon className="text-xs" /> Add Director
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      label="Writer (ผู้เขียนบท)"
-                      placeholder="e.g. Jonathan Nolan"
-                      error={errors.writer?.message}
-                      {...register("writer")}
-                    />
-                    <Input
-                      label="Cast (นักแสดง - แยกด้วยจุลภาค ,)"
-                      placeholder="e.g. Matthew McConaughey, Anne Hathaway"
-                      error={errors.cast?.message}
-                      {...register("cast")}
-                    />
+                  {/* Producers Section */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-300">Producer (ผู้อำนวยการสร้าง)</label>
+                    <div className="space-y-2">
+                      {producers.map((producer, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <CreatableSearchSelect
+                            value={producer}
+                            options={crewOptions}
+                            placeholder="พิมพ์ชื่อ หรือเลือกผู้อำนวยการสร้าง..."
+                            onChange={(val) => {
+                              const newProducers = [...producers];
+                              newProducers[idx] = val;
+                              setProducers(newProducers);
+                            }}
+                          />
+                          {producers.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setProducers(producers.filter((_, i) => i !== idx))}
+                              className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all cursor-pointer flex-shrink-0"
+                            >
+                              <CloseIcon className="text-sm" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setProducers([...producers, { id: "", name: "" }])}
+                        className="py-1.5 px-3 text-[11px] h-8 w-fit flex items-center gap-1 bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 hover:text-white text-zinc-300 font-semibold"
+                      >
+                        <AddIcon className="text-xs" /> Add Producer
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Writers Section */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-300">Writer (ผู้เขียนบท)</label>
+                    <div className="space-y-2">
+                      {writers.map((writer, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <CreatableSearchSelect
+                            value={writer}
+                            options={crewOptions}
+                            placeholder="พิมพ์ชื่อ หรือเลือกผู้เขียนบท..."
+                            onChange={(val) => {
+                              const newWriters = [...writers];
+                              newWriters[idx] = val;
+                              setWriters(newWriters);
+                            }}
+                          />
+                          {writers.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setWriters(writers.filter((_, i) => i !== idx))}
+                              className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all cursor-pointer flex-shrink-0"
+                            >
+                              <CloseIcon className="text-sm" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setWriters([...writers, { id: "", name: "" }])}
+                        className="py-1.5 px-3 text-[11px] h-8 w-fit flex items-center gap-1 bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 hover:text-white text-zinc-300 font-semibold"
+                      >
+                        <AddIcon className="text-xs" /> Add Writer
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Cast Section */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-zinc-300">Cast (นักแสดง)</label>
+                    <div className="space-y-2">
+                      {castMembers.map((actor, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <CreatableSearchSelect
+                            value={actor}
+                            options={crewOptions}
+                            placeholder="พิมพ์ชื่อ หรือเลือกนักแสดง..."
+                            onChange={(val) => {
+                              const newCast = [...castMembers];
+                              newCast[idx] = val;
+                              setCastMembers(newCast);
+                            }}
+                          />
+                          {castMembers.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setCastMembers(castMembers.filter((_, i) => i !== idx))}
+                              className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl border border-red-500/20 transition-all cursor-pointer flex-shrink-0"
+                            >
+                              <CloseIcon className="text-sm" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setCastMembers([...castMembers, { id: "", name: "" }])}
+                        className="py-1.5 px-3 text-[11px] h-8 w-fit flex items-center gap-1 bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 hover:text-white text-zinc-300 font-semibold"
+                      >
+                        <AddIcon className="text-xs" /> Add Actor
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
