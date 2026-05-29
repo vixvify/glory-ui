@@ -516,7 +516,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
         <div className="flex border-b border-zinc-800/60 gap-8">
           <button
             onClick={() => setActiveTab("movies")}
@@ -974,7 +973,6 @@ export default function AdminPage() {
                     </select>
                   </div>
 
-                  {/* Directors Section */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-300">Director (ผู้กำกับ)</label>
                     <div className="space-y-2">
@@ -1012,7 +1010,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Producers Section */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-300">Producer (ผู้อำนวยการสร้าง)</label>
                     <div className="space-y-2">
@@ -1050,7 +1047,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Writers Section */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-300">Writer (ผู้เขียนบท)</label>
                     <div className="space-y-2">
@@ -1088,7 +1084,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Cast Section */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-300">Cast (นักแสดง)</label>
                     <div className="space-y-2">

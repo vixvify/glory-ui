@@ -2,13 +2,7 @@ import { Movie, CreateMovie, UpdateMovie } from "../domain/movie";
 import { MovieRepository } from "../ports/movie.repository";
 import { parseSchema } from "@/lib/validation";
 import { createMovieSchema, updateMovieSchema } from "../schema/movie";
-
-const parseStringOrArray = (val: any): string[] => {
-  if (!val) return [];
-  if (Array.isArray(val)) return val;
-  if (typeof val === "string") return val.split(",").map((s: string) => s.trim()).filter(Boolean);
-  return [];
-};
+import { parseStringOrArray } from "@/utils/parser";
 
 export class MovieService {
   constructor(private readonly movieRepository: MovieRepository) { }
